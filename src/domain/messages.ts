@@ -1,0 +1,27 @@
+// 오류 코드 → 방문자에게 보여 줄 문구. 화면과 API가 같은 문구를 쓴다 (위험 X7).
+
+import type { CustomExtensionError } from "./custom-extension";
+import type { ExtensionSource } from "./policy";
+import type { NameErrorCode } from "./upload-name";
+
+export const NAME_ERROR_MESSAGES: Record<NameErrorCode, string> = {
+  NAME_EMPTY: "파일 이름이 비어 있습니다.",
+  NAME_CONTROL_CHAR: "파일 이름에 보이지 않는 문자가 있습니다. 이름을 바꿔 다시 올려 주세요.",
+  NAME_EMOJI: "파일 이름에 이모지를 쓸 수 없습니다.",
+  NAME_FORBIDDEN_CHAR: '파일 이름에 쓸 수 없는 문자(< > : " | ? *)가 있습니다.',
+  NAME_TOO_LONG: "파일 이름은 255자까지 쓸 수 있습니다.",
+};
+
+export const CUSTOM_EXTENSION_MESSAGES: Record<CustomExtensionError, string> = {
+  EMPTY: "확장자를 입력해 주세요.",
+  TOO_LONG: "확장자는 20자까지 입력할 수 있습니다.",
+  WILDCARD: "별표(*) 없이 확장자만 입력해 주세요. 예: sh",
+  INVALID_CHAR: "확장자는 영문과 숫자만 쓸 수 있습니다.",
+  INVALID_FORMAT: "점은 확장자 사이에 하나만 쓸 수 있습니다. 예: tar.gz",
+  TOO_MANY_SEGMENTS: "확장자는 두 단까지 입력할 수 있습니다. 예: tar.gz",
+  FIXED_EXTENSION: "고정 확장자입니다. 위 고정 확장자 목록에서 체크해 주세요.",
+};
+
+export function blockedMessage(matched: string, source: ExtensionSource): string {
+  return `업로드할 수 없는 확장자입니다: ${matched} (${source === "fixed" ? "고정" : "커스텀"} 확장자)`;
+}
