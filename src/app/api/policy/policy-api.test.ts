@@ -14,7 +14,13 @@ const url = (path: string) => `http://localhost/api/policy${path}`;
 const json = (body: unknown) => ({ body: typeof body === "string" ? body : JSON.stringify(body) });
 const ctx = (ext: string) => ({ params: Promise.resolve({ ext }) });
 
-beforeEach(resetPolicyTables);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+beforeEach(async () => {
+  vi.restoreAllMocks();
+  vi.spyOn(console, "info").mockImplementation(() => {}); // 정책 변경 로그 — 필요한 테스트에서 읽는다
+  await resetPolicyTables();
+});
 afterAll(() => pool.end());
 
 describe("GET /api/policy", () => {
@@ -38,13 +44,15 @@ describe("GET /api/policy", () => {
     expect(JSON.parse(text)).toMatchObject({ error: { code: "SERVER_ERROR" } });
   });
 
-  it("연결 거부처럼 message가 빈 오류도 서버 로그에 원인 코드를 남긴다", async () => {
+  it("연결 거부처럼 message가 빈 오류도 서버 로그에 원인 코드를 남기고, 응답과 같은 요청 번호를 쓴다", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const refused = Object.assign(new AggregateError([], ""), { code: "ECONNREFUSED" });
     const spy = vi.spyOn(pool, "query").mockRejectedValueOnce(refused);
-    await getPolicy();
+    const res = await getPolicy();
     spy.mockRestore();
-    expect(log.mock.calls.at(-1)?.[1]).toBe("ECONNREFUSED");
+    const requestId = res.headers.get("x-request-id");
+    expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toEqual({ event: "server_error", requestId, cause: "ECONNREFUSED" });
+    expect((await res.json()).error.requestId).toBe(requestId);
   });
 });
 
@@ -81,7 +89,12 @@ describe("POST /api/policy/custom", () => {
     const res = await post({ ext: "*.exe" });
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({
-      error: { code: "INVALID_EXTENSION", message: CUSTOM_EXTENSION_MESSAGES.WILDCARD, details: { reason: "WILDCARD" } },
+      error: {
+        code: "INVALID_EXTENSION",
+        message: CUSTOM_EXTENSION_MESSAGES.WILDCARD,
+        requestId: res.headers.get("x-request-id"),
+        details: { reason: "WILDCARD" },
+      },
     });
   });
 
@@ -101,7 +114,7 @@ describe("POST /api/policy/custom", () => {
     expect(await res.json()).toMatchObject({ error: { code: "DUPLICATE_EXTENSION" } });
   });
 
-  it.each([{}, { ext: 3 }, "x", { ext: "a".repeat(2000) }])("잘못된 본문 → 400 INVALID_BODY", async (body) => {
+  it.each([{}, { ext: 3 }, "x"])("잘못된 본문 → 400 INVALID_BODY", async (body) => {
     const res = await post(body);
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({ error: { code: "INVALID_BODY" } });
@@ -141,5 +154,70 @@ describe("POST /api/policy/reset · GET /api/policy/audit", () => {
     expect(res.status).toBe(200);
     const { items } = await res.json();
     expect(items.length).toBeLessThanOrEqual(50);
+  });
+});
+
+describe("본문 크기 제한 1KB", () => {
+  const big = JSON.stringify({ ext: "a".repeat(2000) });
+
+  it("Content-Length가 1KB를 넘으면 본문을 읽지 않고 413", async () => {
+    const req = new Request(url("/custom"), { method: "POST", body: "{}", headers: { "content-length": "5000" } });
+    const res = await postCustom(req);
+    expect(res.status).toBe(413);
+    expect(await res.json()).toMatchObject({ error: { code: "BODY_TOO_LARGE" } });
+    expect(req.bodyUsed).toBe(false);
+  });
+
+  it.each([
+    ["헤더가 없을 때", {}],
+    ["헤더 값이 실제보다 작을 때", { "content-length": "10" }],
+    ["헤더 값이 숫자가 아닐 때", { "content-length": "abc" }],
+  ])("%s는 읽은 뒤 크기를 재서 413", async (_case, headers) => {
+    const res = await putFixed(
+      new Request(url("/fixed/exe"), { method: "PUT", body: big, headers }),
+      ctx("exe"),
+    );
+    expect(res.status).toBe(413);
+    expect(await res.json()).toMatchObject({ error: { code: "BODY_TOO_LARGE" } });
+  });
+});
+
+describe("요청 번호로 응답·서버 로그·이력을 잇는다", () => {
+  const changeLogs = () =>
+    vi.mocked(console.info).mock.calls.map(([line]) => JSON.parse(String(line)) as Record<string, unknown>);
+
+  it("모든 정책 API 응답에 X-Request-Id가 있다", async () => {
+    const responses = [
+      await getPolicy(),
+      await putFixed(new Request(url("/fixed/exe"), { method: "PUT", ...json({ blocked: true }) }), ctx("exe")),
+      await putFixed(new Request(url("/fixed/zip"), { method: "PUT", ...json({ blocked: true }) }), ctx("zip")),
+      await postCustom(new Request(url("/custom"), { method: "POST", ...json({ ext: "sh" }) })),
+      await postCustom(new Request(url("/custom"), { method: "POST", ...json({ ext: "*" }) })),
+      await deleteCustom(new Request(url("/custom/sh"), { method: "DELETE" }), ctx("sh")),
+      await postReset(),
+      await getAudit(new Request(url("/audit"))),
+    ];
+    for (const res of responses) expect(res.headers.get("x-request-id")).toMatch(UUID);
+    expect(new Set(responses.map((r) => r.headers.get("x-request-id"))).size).toBe(responses.length);
+  });
+
+  it("오류 본문에 같은 번호가 있다", async () => {
+    const res = await postCustom(new Request(url("/custom"), { method: "POST", ...json({ ext: "*.exe" }) }));
+    expect((await res.json()).error.requestId).toBe(res.headers.get("x-request-id"));
+  });
+
+  it("정책을 바꾸면 로그 한 줄(번호·행위·확장자만)을 남기고, 이력 행에도 같은 번호가 있다", async () => {
+    const res = await postCustom(new Request(url("/custom"), { method: "POST", ...json({ ext: "sh" }) }));
+    const requestId = res.headers.get("x-request-id");
+    expect(changeLogs()).toEqual([{ event: "policy_change", requestId, action: "custom_added", ext: "sh" }]);
+    const { rows } = await pool.query("SELECT request_id FROM policy_audit_log ORDER BY id DESC LIMIT 1");
+    expect(rows[0].request_id).toBe(requestId);
+  });
+
+  it("바뀐 것이 없으면 로그도 없다", async () => {
+    await putFixed(new Request(url("/fixed/exe"), { method: "PUT", ...json({ blocked: false }) }), ctx("exe"));
+    await deleteCustom(new Request(url("/custom/sh"), { method: "DELETE" }), ctx("sh"));
+    await postReset();
+    expect(changeLogs()).toEqual([]);
   });
 });

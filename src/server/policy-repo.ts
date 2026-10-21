@@ -18,14 +18,29 @@ export type AddCustomResult =
   | { ok: false; code: "INVALID_EXTENSION"; reason: InputError }
   | { ok: false; code: "FIXED_EXTENSION" | "DUPLICATE_EXTENSION" | "CUSTOM_LIMIT_REACHED" };
 
-// 트랜잭션 단위 잠금이라 커밋·롤백 때 풀린다. Neon 풀러(트랜잭션 모드)에서도 쓸 수 있는 종류 (설계 6장)
-async function withPolicyLock<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+type Record = (action: AuditAction, ext: string | null, detail?: object) => Promise<void>;
+
+// 트랜잭션 단위 잠금이라 커밋·롤백 때 풀린다. Neon 풀러(트랜잭션 모드)에서도 쓸 수 있는 종류 (설계 6장).
+// record는 같은 트랜잭션에 이력 행을 넣고, 커밋이 끝난 뒤 서버 로그를 한 줄 남긴다.
+// 로그에는 요청 번호·행위·확장자만 쓴다 — IP나 다른 개인 정보는 남기지 않는다 (위험 D12·O2)
+async function withPolicyLock<T>(requestId: string, work: (client: PoolClient, record: Record) => Promise<T>): Promise<T> {
   const client = await pool.connect();
+  const changes: { action: AuditAction; ext: string | null }[] = [];
+  const record: Record = async (action, ext, detail = {}) => {
+    await client.query("INSERT INTO policy_audit_log (action, ext, detail, request_id) VALUES ($1, $2, $3, $4)", [
+      action,
+      ext,
+      JSON.stringify(detail),
+      requestId,
+    ]);
+    changes.push({ action, ext });
+  };
   try {
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(hashtext('policy'))");
-    const result = await work(client);
+    const result = await work(client, record);
     await client.query("COMMIT");
+    for (const change of changes) console.info(JSON.stringify({ event: "policy_change", requestId, ...change }));
     return result;
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
@@ -34,14 +49,6 @@ async function withPolicyLock<T>(work: (client: PoolClient) => Promise<T>): Prom
     client.release();
   }
 }
-
-const audit = (client: PoolClient, action: AuditAction, ext: string | null, requestId: string, detail = {}) =>
-  client.query("INSERT INTO policy_audit_log (action, ext, detail, request_id) VALUES ($1, $2, $3, $4)", [
-    action,
-    ext,
-    JSON.stringify(detail),
-    requestId,
-  ]);
 
 type Queryable = Pick<PoolClient, "query">;
 
@@ -59,19 +66,19 @@ async function selectPolicy(db: Queryable): Promise<PolicySnapshot> {
 export const readPolicy = () => selectPolicy(pool);
 
 export function setFixedBlocked(ext: string, blocked: boolean, requestId: string) {
-  return withPolicyLock(async (client) => {
+  return withPolicyLock(requestId, async (client, record) => {
     const current = await client.query<{ blocked: boolean }>("SELECT blocked FROM fixed_extension WHERE ext = $1", [ext]);
     if (current.rowCount === 0) return { ok: false as const, code: "UNKNOWN_FIXED_EXTENSION" as const };
     // 원하는 상태를 받으므로 같으면 아무것도 바꾸지 않는다 (위험 P10)
     if (current.rows[0].blocked === blocked) return { ok: true as const, ext, blocked, changed: false };
     await client.query("UPDATE fixed_extension SET blocked = $2, updated_at = now() WHERE ext = $1", [ext, blocked]);
-    await audit(client, blocked ? "fixed_blocked" : "fixed_unblocked", ext, requestId);
+    await record(blocked ? "fixed_blocked" : "fixed_unblocked", ext);
     return { ok: true as const, ext, blocked, changed: true };
   });
 }
 
 export function addCustom(raw: string, requestId: string): Promise<AddCustomResult> {
-  return withPolicyLock(async (client) => {
+  return withPolicyLock(requestId, async (client, record) => {
     // 고정 목록의 출처는 fixed_extension 하나 (설계 2.2)
     const fixed = await client.query<{ ext: string }>("SELECT ext FROM fixed_extension");
     const input = normalizeCustomExtension(
@@ -91,7 +98,7 @@ export function addCustom(raw: string, requestId: string): Promise<AddCustomResu
       [input.ext],
     );
     if (inserted.rowCount === 0) return { ok: false, code: "DUPLICATE_EXTENSION" };
-    await audit(client, "custom_added", input.ext, requestId);
+    await record("custom_added", input.ext);
     return {
       ok: true,
       ext: input.ext,
@@ -105,16 +112,16 @@ export async function removeCustom(raw: string, requestId: string) {
   // 지울 때는 고정 목록과 비교할 필요가 없다 — 형식만 맞추고, 없으면 지워진 것이 없을 뿐
   const input = normalizeCustomExtension(raw, []);
   if (!input.ok) return { ok: false as const, code: "INVALID_EXTENSION" as const, reason: input.reason };
-  return withPolicyLock(async (client) => {
+  return withPolicyLock(requestId, async (client, record) => {
     const deleted = await client.query("DELETE FROM custom_extension WHERE ext = $1", [input.ext]);
     if (deleted.rowCount === 0) return { ok: true as const, removed: false };
-    await audit(client, "custom_removed", input.ext, requestId);
+    await record("custom_removed", input.ext);
     return { ok: true as const, removed: true };
   });
 }
 
 export function resetPolicy(requestId: string) {
-  return withPolicyLock(async (client) => {
+  return withPolicyLock(requestId, async (client, record) => {
     const before = await selectPolicy(client);
     const fixedBlocked = before.fixed.filter((f) => f.blocked).map((f) => f.ext);
     const custom = before.custom.map((c) => c.ext);
@@ -123,7 +130,7 @@ export function resetPolicy(requestId: string) {
     await client.query("UPDATE fixed_extension SET blocked = false, updated_at = now() WHERE blocked");
     await client.query("DELETE FROM custom_extension");
     // 초기화는 한 건으로 남기고 직전 상태를 detail에 담는다 (설계 5.3)
-    await audit(client, "policy_reset", null, requestId, { fixed_blocked: fixedBlocked, custom });
+    await record("policy_reset", null, { fixed_blocked: fixedBlocked, custom });
     return { changed: true, policy: await selectPolicy(client) };
   });
 }

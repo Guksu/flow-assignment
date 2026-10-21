@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { auditSince, insertCustomDirectly, lastAuditId, resetPolicyTables } from "@/test/db-helpers";
 import { pool } from "./db";
 import {
@@ -20,7 +20,10 @@ const sqlError = (sql: string, params: unknown[] = []) =>
     (e: { code?: string }) => e.code,
   );
 
-beforeEach(resetPolicyTables);
+beforeEach(async () => {
+  vi.spyOn(console, "info").mockImplementation(() => {});
+  await resetPolicyTables();
+});
 afterAll(() => pool.end());
 
 describe("DB 제약과 트리거 (앱을 거치지 않은 직접 쓰기)", () => {
