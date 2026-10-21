@@ -59,7 +59,7 @@ describe("업로드 처리 (설계 6장)", () => {
     expect((await attemptRow(attempt.id)).original_name).toBeNull();
   });
 
-  it("4MiB를 넘으면 내용을 읽지 않고 거부한다 (위험 U2)", async () => {
+  it("4MiB를 넘으면 파일 바이트를 꺼내지 않고 거부한다 — 판정에 내용을 쓰지 않음 (위험 U2)", async () => {
     const big = file("big.pdf", MAX_FILE_BYTES + 1);
     const { attempt, code } = await handleUpload(big, storage, RID);
     expect(code).toBe("FILE_TOO_LARGE");
@@ -67,7 +67,7 @@ describe("업로드 처리 (설계 6장)", () => {
     expect(big.read).not.toHaveBeenCalled();
   });
 
-  it("크기를 넘는 파일도 확장자가 막혀 있으면 '차단'으로 기록하고, 내용은 읽지 않는다 (문답 #39)", async () => {
+  it("크기를 넘는 파일도 확장자가 막혀 있으면 '차단'으로 기록하고, 파일 바이트는 꺼내지 않는다 (문답 #39)", async () => {
     await setFixedBlocked("exe", true, RID);
     const big = file("Setup.EXE", MAX_FILE_BYTES + 1);
     const { attempt, code } = await handleUpload(big, storage, RID);
@@ -153,5 +153,16 @@ describe("정리 (크론, 위험 U8·U9·P13)", () => {
     expect(await attemptRow(old.attempt.id)).toBeUndefined();
 
     expect(await cleanupExpired(storage)).toEqual({ attempts: 0, files: 0, audit: 0 });
+  });
+
+  it("저장 행은 있는데 파일이 없는 경우(예약 뒤 저장 전에 끊김)도 막히지 않고 정리한다 (PR #9 리뷰)", async () => {
+    // 예약만 되고 파일은 없는 행을 만든다
+    const { rows } = await pool.query<{ id: string }>(
+      `INSERT INTO upload_attempt (status, size_bytes, blob_pathname, created_at, expires_at)
+       VALUES ('stored', 1, 'uploads/never-written', now() - interval '25 hours', now() - interval '1 hour') RETURNING id`,
+    );
+    expect(storage.files.has("uploads/never-written")).toBe(false);
+    expect(await cleanupExpired(storage)).toMatchObject({ attempts: 1, files: 1 });
+    expect(await attemptRow(rows[0].id)).toBeUndefined();
   });
 });

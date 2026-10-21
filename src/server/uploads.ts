@@ -124,7 +124,8 @@ export async function recordOversized(size: number, requestId: string): Promise<
 
 export async function handleUpload(input: UploadInput, storage: FileStorage, requestId: string): Promise<UploadResult> {
   // 1~3. 이름 → 정책 / 크기를 따로 판정하고 이름·정책 사유를 우선한다(문답 #39). 정책은 요청마다 최신으로 읽는다.
-  // 이 단계까지는 이름과 크기만 보므로 내용은 읽지 않는다
+  // 판정에는 이름과 크기만 쓰고 내용은 쓰지 않는다(본문은 라우트의 request.formData()가 이미 받은 상태).
+  // 파일 바이트(input.read)는 판정을 통과한 뒤에만 꺼낸다
   const policy = await readPolicy();
   const check = checkUpload(input.name, input.size, {
     fixedBlocked: policy.fixed.filter((f) => f.blocked).map((f) => f.ext),

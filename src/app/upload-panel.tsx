@@ -3,9 +3,16 @@
 // 업로드 시험 (설계 7장 4~5). 고른 파일은 같은 순수 함수로 바로 안내하지만, 최종 판정은 서버가 한다 (위험 U1·X1).
 // 안내가 "막힌다"여도 올려 볼 수 있게 둔다 — 서버가 실제로 막는 것을 확인하는 화면이기 때문이다.
 import { type ChangeEvent, type FormEvent, useState } from "react";
-import { blockedMessage, errorText, NAME_ERROR_MESSAGES, POLICY_ERROR_MESSAGES, UPLOAD_ERROR_MESSAGES } from "@/domain/messages";
-import { checkUpload } from "@/domain/upload-check";
-import { parseUploadName } from "@/domain/upload-name";
+import {
+  blockedMessage,
+  errorText,
+  NAME_ERROR_MESSAGES,
+  POLICY_ERROR_MESSAGES,
+  tooLargeMessage,
+  UPLOAD_ERROR_MESSAGES,
+} from "@/domain/messages";
+import { checkUpload, type UploadCheck } from "@/domain/upload-check";
+import { MAX_FILE_BYTES, parseUploadName } from "@/domain/upload-name";
 
 type Status = "stored" | "blocked" | "rejected" | "failed";
 type Result = { key: string; name: string; status: Status; message: string };
@@ -25,16 +32,22 @@ const shownName = (name: string) => {
 };
 
 // 서버와 같은 함수(checkUpload)로 같은 우선순위를 쓴다: 이름 → 정책이 크기보다 먼저 (문답 #39)
-function precheck(file: File, policy: Policy | null): string {
-  const check = checkUpload(file.name, file.size, {
+function localCheck(file: File, policy: Policy | null): UploadCheck {
+  return checkUpload(file.name, file.size, {
     fixedBlocked: policy ? policy.fixed.filter((f) => f.blocked).map((f) => f.ext) : [],
     custom: policy ? policy.custom.map((c) => c.ext) : [],
   });
+}
+
+function precheck(check: UploadCheck, policy: Policy | null, size: number): string {
   const unknownPolicy = policy ? "" : " 정책을 불러오지 못해 차단 여부는 올리면 서버가 판단합니다.";
   if (check.ok) return policy ? "올릴 수 있는 파일입니다. 최종 판정은 서버가 합니다." : unknownPolicy.trim();
   switch (check.code) {
     case "EXTENSION_BLOCKED":
-      return `${blockedMessage(check.matched, check.source)} 올려 보면 서버도 막습니다.`;
+      // 4MiB를 넘으면 서버는 이름을 보기 전에 크기로 거부할 수 있다(요청 크기 선검사·플랫폼 413, 설계 6장)
+      return size > MAX_FILE_BYTES
+        ? `${blockedMessage(check.matched, check.source)} 4MiB도 넘어서, 서버는 이름을 보기 전에 크기로 거부할 수 있습니다.`
+        : `${blockedMessage(check.matched, check.source)} 올려 보면 서버도 막습니다.`;
     case "FILE_TOO_LARGE":
       return UPLOAD_ERROR_MESSAGES.FILE_TOO_LARGE + unknownPolicy;
     default:
@@ -45,6 +58,7 @@ function precheck(file: File, policy: Policy | null): string {
 export function UploadPanel() {
   const [file, setFile] = useState<File | null>(null);
   const [hint, setHint] = useState("");
+  const [check, setCheck] = useState<UploadCheck | null>(null); // 고른 파일의 브라우저 판정
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [inputKey, setInputKey] = useState(0); // 올린 뒤 파일 선택을 비운다
@@ -53,21 +67,26 @@ export function UploadPanel() {
     const picked = event.target.files?.[0] ?? null;
     setFile(picked);
     setHint("");
+    setCheck(null);
     if (!picked) return;
     // 고를 때마다 최신 정책으로 안내한다 — 다른 사람이 정책을 바꿨을 수 있다
     const res = await fetch("/api/policy", { cache: "no-store" }).catch(() => null);
     const policy: Policy | null = res?.ok ? await res.json().catch(() => null) : null;
-    setHint(precheck(picked, policy));
+    const result = localCheck(picked, policy);
+    setCheck(result);
+    setHint(precheck(result, policy, picked.size));
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!file) return;
     setBusy(true);
-    const result = await send(file);
+    const blockedExt = check && !check.ok && check.code === "EXTENSION_BLOCKED" ? check.matched : null;
+    const result = await send(file, blockedExt);
     setResults((prev) => [result, ...prev]);
     setFile(null);
     setHint("");
+    setCheck(null);
     setInputKey((k) => k + 1);
     setBusy(false);
   }
@@ -109,7 +128,7 @@ export function UploadPanel() {
   );
 }
 
-async function send(file: File): Promise<Result> {
+async function send(file: File, blockedExt: string | null): Promise<Result> {
   const name = shownName(file.name);
   const key = crypto.randomUUID();
   const body = new FormData();
@@ -118,6 +137,10 @@ async function send(file: File): Promise<Result> {
     const res = await fetch("/api/uploads", { method: "POST", body });
     const json = await res.json().catch(() => null);
     if (res.status === 201) return { key, name: json?.attempt?.name ?? name, status: "stored", message: "저장했습니다." };
+    // 서버가 이름을 보기 전에 크기로 거부했으면(이름 없는 시도) 브라우저의 차단 판정도 같이 알린다
+    if (res.status === 413 && json?.attempt && json.attempt.name === null) {
+      return { key, name, status: "rejected", message: tooLargeMessage(blockedExt) };
+    }
     if (json?.attempt) {
       return {
         key,
@@ -128,7 +151,7 @@ async function send(file: File): Promise<Result> {
       };
     }
     // 플랫폼이 함수에 닿기 전에 막은 큰 요청(4.5MB 초과)은 JSON 없이 413만 온다 (위험 U2)
-    if (res.status === 413) return { key, name, status: "rejected", message: UPLOAD_ERROR_MESSAGES.FILE_TOO_LARGE };
+    if (res.status === 413) return { key, name, status: "rejected", message: tooLargeMessage(blockedExt) };
     const message = json?.error?.message ?? POLICY_ERROR_MESSAGES.SERVER_ERROR;
     return { key, name, status: "failed", message: errorText(message, res.status, json?.error?.requestId ?? res.headers.get("x-request-id")) };
   } catch {
