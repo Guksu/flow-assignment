@@ -4,7 +4,7 @@
 |------|------|
 | 날짜 | 2026-10-21 |
 | 브랜치 | `docs/design` |
-| PR | 새 PR (생성 후 링크 추가). 처음 올린 PR #4는 범위 재조정 뒤 사용자 요청으로 닫음 |
+| PR | https://github.com/Guksu/flow-assignment/pull/5 (처음 올린 PR #4는 범위 재조정 뒤 사용자 요청으로 닫음) |
 | 관련 경로 | `docs/design/2026-10-21-file-extension-policy.md`, `docs/analysis/01-requirements.md`, `docs/analysis/02-risks.md`, `docs/analysis/03-stack.md`, `docs/ai-checklist.md`, `PROMPT_LOG.md` |
 
 ## 1. 개요
@@ -43,6 +43,7 @@
 | 위험 표 숫자 | 표 행 집계 스크립트 | 재조정 전 93 / 구현 76 · 문서로만 11 · 제외 6 → 재조정 후 93 / 구현 73 · 문서로만 13 · 제외 7, ID 중복 없음 |
 | 스키마 DDL | 설계 문서 5장의 SQL 블록 6개를 뽑아 `postgres:17-alpine` 컨테이너에 `psql -v ON_ERROR_STOP=1`로 적용 | 오류 없이 테이블 5개 생성 |
 | 제약·트리거 | 같은 컨테이너에서 거부돼야 할 입력 실행 | 시드 재실행 후 체크 상태 유지 / 형식 CHECK가 `EXE`·`.sh`·`tar..gz`·`pkg.tar.zst`·빈 값 거부, 21자는 길이 오류 / 중복 거부 / 겹침 트리거 양방향 거부 / 감사 로그 UPDATE·30일 전 DELETE·TRUNCATE 거부, 31일 된 행 삭제 허용 / `policy_reset`에 `ext` 있으면 거부 / 업로드 시도 상태별 CHECK 3종 거부 — 모두 설계대로 |
+| 최종 DDL 재확인 | 범위 재조정 뒤 DDL(`actor_key`·`visitor_key` 제거)을 새 컨테이너에 다시 적용하고 같은 거부 입력 실행 | 오류 없이 적용, 거부 결과 17건이 재조정 전과 같음 |
 | 200개 동시 추가 | 199개에서 두 세션이 동시에 "개수 확인 → 1초 대기 → 추가" | 잠금 없음 **201개**(E6 재현), `pg_advisory_xact_lock` 있음 **200개** |
 | 하네스 구조 | `npx guksu-harness check .` | error 0, warn 0 |
 
