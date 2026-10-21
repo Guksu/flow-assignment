@@ -1,50 +1,51 @@
 // 오류 코드 → 방문자에게 보여 줄 문구. 화면과 API가 같은 문구를 쓴다 (위험 X7).
+// 말투는 해요체 하나, 오류는 무엇을 어떻게 고칠지까지 한 줄로 쓴다(제출용 화면 정리, suta 문구 기준).
 
 import type { CustomExtensionError } from "./custom-extension";
 import type { ExtensionSource } from "./policy";
 import type { NameErrorCode } from "./upload-name";
 
 export const NAME_ERROR_MESSAGES: Record<NameErrorCode, string> = {
-  NAME_EMPTY: "파일 이름이 비어 있습니다.",
-  NAME_CONTROL_CHAR: "파일 이름에 보이지 않는 문자가 있습니다. 이름을 바꿔 다시 올려 주세요.",
-  NAME_EMOJI: "파일 이름에 이모지를 쓸 수 없습니다. 이모지를 빼고 이름을 바꿔 다시 올려 주세요.",
-  NAME_FORBIDDEN_CHAR: '파일 이름에 쓸 수 없는 문자(< > : " | ? *)가 있습니다.',
-  NAME_TOO_LONG: "파일 이름은 255자까지 쓸 수 있습니다.",
+  NAME_EMPTY: "파일 이름이 비어 있어요.",
+  NAME_CONTROL_CHAR: "파일 이름에 보이지 않는 문자가 있어요. 이름을 바꿔 다시 올려 주세요.",
+  NAME_EMOJI: "파일 이름에 이모지를 쓸 수 없어요. 이모지를 빼고 이름을 바꿔 다시 올려 주세요.",
+  NAME_FORBIDDEN_CHAR: '파일 이름에 쓸 수 없는 문자(< > : " | ? *)가 있어요. 그 문자를 빼고 다시 올려 주세요.',
+  NAME_TOO_LONG: "파일 이름은 255자까지 쓸 수 있어요.",
 };
 
 export const CUSTOM_EXTENSION_MESSAGES: Record<CustomExtensionError, string> = {
   EMPTY: "확장자를 입력해 주세요.",
-  TOO_LONG: "확장자는 20자까지 입력할 수 있습니다.",
+  TOO_LONG: "확장자는 20자까지 입력할 수 있어요.",
   WILDCARD: "별표(*) 없이 확장자만 입력해 주세요. 예: sh",
-  INVALID_CHAR: "확장자는 영문과 숫자만 쓸 수 있습니다.",
-  INVALID_FORMAT: "점은 확장자 사이에 하나만 쓸 수 있습니다. 예: tar.gz",
-  TOO_MANY_SEGMENTS: "확장자는 두 단까지 입력할 수 있습니다. 예: tar.gz",
-  FIXED_EXTENSION: "고정 확장자입니다. 위 고정 확장자 목록에서 체크해 주세요.",
+  INVALID_CHAR: "확장자는 영문과 숫자만 쓸 수 있어요.",
+  INVALID_FORMAT: "점은 확장자 사이에 하나만 쓸 수 있어요. 예: tar.gz",
+  TOO_MANY_SEGMENTS: "확장자는 두 단까지 입력할 수 있어요. 예: tar.gz",
+  FIXED_EXTENSION: "고정 확장자예요. 위 고정 확장자 목록에서 체크해 주세요.",
 };
 
 // 정책 API 오류 (설계 8장). 커스텀 입력 오류는 위 CUSTOM_EXTENSION_MESSAGES를 그대로 쓴다
 export const POLICY_ERROR_MESSAGES = {
-  INVALID_BODY: "요청 형식이 올바르지 않습니다.",
-  BODY_TOO_LARGE: "요청 본문이 너무 큽니다.",
-  UNKNOWN_FIXED_EXTENSION: "없는 고정 확장자입니다.",
-  DUPLICATE_EXTENSION: "이미 추가된 확장자입니다.",
-  CUSTOM_LIMIT_REACHED: "커스텀 확장자는 200개까지 추가할 수 있습니다. 쓰지 않는 확장자를 지우거나 기본값으로 초기화해 주세요.",
-  SERVER_ERROR: "일시적인 오류입니다. 잠시 후 다시 시도해 주세요.",
+  INVALID_BODY: "요청 형식이 올바르지 않아요.",
+  BODY_TOO_LARGE: "요청 본문이 너무 커요.",
+  UNKNOWN_FIXED_EXTENSION: "없는 고정 확장자예요.",
+  DUPLICATE_EXTENSION: "이미 추가한 확장자예요.",
+  CUSTOM_LIMIT_REACHED: "커스텀 확장자는 200개까지 추가할 수 있어요. 쓰지 않는 확장자를 지우거나 기본값으로 초기화해 주세요.",
+  SERVER_ERROR: "일시적인 오류예요. 잠시 후 다시 시도해 주세요.",
 } as const;
 
 // 업로드 API 오류 (설계 8장). 이름 오류는 NAME_ERROR_MESSAGES, 차단은 blockedMessage를 쓴다
 export const UPLOAD_ERROR_MESSAGES = {
   INVALID_REQUEST: "파일 하나를 골라 올려 주세요.",
-  FILE_TOO_LARGE: "파일은 4MiB까지 올릴 수 있습니다.",
-  DAILY_LIMIT_REACHED: "오늘 저장할 수 있는 업로드 50건을 모두 썼습니다. 내일 다시 시도해 주세요. 차단 확장자 시험은 계속할 수 있습니다.",
-  STORAGE_ERROR: "파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  FILE_TOO_LARGE: "파일은 4MiB까지 올릴 수 있어요.",
+  DAILY_LIMIT_REACHED: "오늘 저장할 수 있는 업로드 50건을 모두 썼어요. 내일 다시 시도해 주세요. 차단 확장자 시험은 계속할 수 있어요.",
+  STORAGE_ERROR: "파일을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.",
 } as const;
 
 // 크기로 거부됐는데 브라우저 판정은 "차단"인 경우 둘 다 알린다. 서버가 이름을 보기 전에 크기로 거부한 경우
 // (요청 크기 선검사·플랫폼 413)에는 서버 사유가 크기뿐이라, 브라우저 판정이 없으면 차단 대상이라는 사실이 가려진다 (설계 6장)
 export function tooLargeMessage(blockedExt: string | null): string {
   return blockedExt
-    ? `차단 대상 확장자(${blockedExt})이고, 4MiB 상한도 넘어 서버가 받기 전에 거부했습니다.`
+    ? `차단 대상 확장자(${blockedExt})이고, 4MiB 상한도 넘어 서버가 받기 전에 거부했어요.`
     : UPLOAD_ERROR_MESSAGES.FILE_TOO_LARGE;
 }
 
@@ -55,5 +56,6 @@ export function errorText(message: string, status: number, requestId: string | n
 }
 
 export function blockedMessage(matched: string, source: ExtensionSource): string {
-  return `업로드할 수 없는 확장자입니다: ${matched} (${source === "fixed" ? "고정" : "커스텀"} 확장자)`;
+  // 받침과 상관없는 조사("에")를 써서 어떤 확장자가 와도 문장이 맞는다
+  return `${source === "fixed" ? "고정" : "커스텀"} 확장자 ${matched}에 걸려 업로드할 수 없어요.`;
 }

@@ -1,0 +1,73 @@
+/* skeleton — 로딩 뼈대 + 시머(shimmer) 애니메이션.
+ * 커스터마이즈: --skeleton-base(바탕색), --skeleton-sheen(반짝임 색), --skeleton-speed(한 바퀴 시간).
+ * 시머는 ::after의 translateX만 움직인다 — background-position 애니메이션과 달리 GPU 합성으로 처리된다. */
+
+.skeleton {
+  /* 기본값은 --_ 내부 변수의 폴백으로 둔다 — 요소 자신에 선언하면 조상 설정이 상속되지 못한다 */
+  --_skeleton-base: var(--skeleton-base, rgba(148, 163, 184, 0.16));
+  --_skeleton-sheen: var(--skeleton-sheen, rgba(148, 163, 184, 0.24));
+  --_skeleton-speed: var(--skeleton-speed, 1.4s);
+  position: relative;
+  overflow: hidden;
+  background: var(--_skeleton-base);
+  border-radius: 8px;
+  /* 로딩 중임을 보조기기에 알리지 않도록 내용을 비운다 — 컨테이너에 aria-busy를 다는 것을 권장 */
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--_skeleton-sheen), transparent);
+  /* 등속 이동(마퀴류)이므로 linear가 맞다 — 이징을 주면 반짝임이 출렁인다 */
+  animation: skeleton-sheen var(--_skeleton-speed) linear infinite;
+}
+
+@keyframes skeleton-sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* 형태 변형 */
+.skeleton-text {
+  height: 1em;
+  border-radius: 4px;
+}
+
+.skeleton-text + .skeleton-text {
+  margin-top: 0.5em;
+}
+
+/* 문단의 마지막 줄은 짧게 — 실제 텍스트처럼 보여야 자리 이동이 어색하지 않다 */
+.skeleton-text:last-child:not(:only-child) {
+  width: 60%;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+  aspect-ratio: 1;
+}
+
+/* 모션 민감 사용자: 이동(시머)은 끄고 느린 불투명도 맥동만 남긴다(0이 아니라 완화) */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: skeleton-pulse 2s ease-in-out infinite;
+    transform: none;
+    background: var(--_skeleton-sheen);
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}

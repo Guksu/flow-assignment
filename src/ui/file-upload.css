@@ -1,0 +1,188 @@
+/* file-upload — 파일을 끌어다 놓는 영역과 목록.
+ * 커스터마이즈: --upload-accent, --upload-border, --upload-bg, --upload-radius, --upload-error.
+ * 기본값은 --_ 내부 변수의 폴백으로 둔다 — 요소 자신에 선언하면 조상 설정이 상속되지 못한다. */
+
+.upload-root {
+  --_accent: var(--upload-accent, #1c1c1c);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.upload-zone {
+  position: relative;
+  border: 2px dashed var(--upload-border, #d1d5db);
+  border-radius: var(--upload-radius, 12px);
+  background: var(--upload-bg, transparent);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+/* 파일이 영역 위로 들어오면 테두리가 살아난다 — "여기 놓으면 된다"를 색으로 말한다.
+ * 크기를 바꾸지 않는 이유: 영역이 커지면 그 순간 레이아웃이 밀려 놓을 자리가 움직인다. */
+.upload-zone[data-dragging='true'] {
+  border-color: var(--_accent);
+  border-style: solid;
+  background: var(--upload-drag-bg, color-mix(in srgb, var(--_accent) 8%, transparent));
+}
+
+.upload-zone[data-disabled='true'] {
+  opacity: 0.55;
+}
+
+/* 라벨이 영역 전체를 덮는다 — 클릭도 키보드도 파일 선택으로 이어진다 */
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.upload-zone[data-disabled='true'] .upload-label {
+  cursor: not-allowed;
+}
+
+/* input은 보이지 않지만 접근성 트리에는 남아야 한다 — display:none이면 포커스가 닿지 않는다 */
+.upload-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.upload-input:focus-visible + .upload-guide {
+  outline: 2px solid var(--_accent);
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
+.upload-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.upload-limits {
+  color: var(--upload-dim, #6b7280);
+  font-size: 0.82rem;
+}
+
+.upload-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--upload-border, #d1d5db);
+  border-radius: 12px; /* 끌어 놓는 칸과 같은 카드 반경 — 파일 행도 카드다 */
+  animation: upload-item-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.upload-item[data-error='true'] {
+  border-color: var(--upload-error, #dc2626);
+}
+
+.upload-thumb {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--upload-thumb-bg, #f3f4f6);
+}
+
+.upload-thumb-icon {
+  display: grid;
+  place-items: center;
+  color: var(--upload-icon-color, #525252);
+}
+
+.upload-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.25rem;
+  min-width: 0; /* 긴 파일 이름이 줄임표로 잘리게 */
+}
+
+.upload-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-size {
+  color: var(--upload-dim, #6b7280);
+  font-size: 0.8rem;
+}
+
+.upload-item[data-error='true'] .upload-size {
+  color: var(--upload-error, #dc2626);
+}
+
+.upload-progress {
+  display: block;
+  height: 4px;
+  margin-top: 0.25rem;
+  border-radius: 999px;
+  background: var(--upload-track, #e5e7eb);
+  overflow: hidden;
+}
+
+/* 진행 막대는 가로로 늘어난다. width가 아니라 transform을 쓰는 이유는 레이아웃을 다시 계산하지
+ * 않기 때문이다 — 진행 이벤트는 초당 수십 번 온다. 둥근 모서리가 눌릴 걱정은 없다:
+ * 모서리는 부모(.upload-progress)가 가지고 있고 부모가 overflow: hidden으로 잘라 낸다. */
+.upload-progress-bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--_accent);
+  transform-origin: left center;
+  transition: transform 200ms ease-out;
+}
+
+.upload-remove {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--upload-dim, #6b7280);
+  font: inherit;
+  cursor: pointer;
+}
+
+.upload-remove:hover {
+  background: var(--upload-thumb-bg, #f3f4f6);
+  color: inherit;
+}
+
+@keyframes upload-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* 모션 민감 사용자: 목록 등장 연출만 없앤다. 진행 막대의 전이는 남긴다 —
+ * 그것은 연출이 아니라 "얼마나 왔는지"를 잇는 정보다. */
+@media (prefers-reduced-motion: reduce) {
+  .upload-zone,
+  .upload-item {
+    transition: none;
+    animation: none;
+  }
+}
