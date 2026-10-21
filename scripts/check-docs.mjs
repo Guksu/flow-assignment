@@ -17,6 +17,9 @@ const defaults = [
 const files = process.argv.length > 2 ? process.argv.slice(2) : defaults;
 
 const MUST_BE_ZERO = ["[초안]", "사용자", "확인 필요"];
+// 인용한 제 말은 원문 그대로라(가이드 "문체") "사용자"는 인용 밖에서만 센다: > 인용 줄과 "…"·“…” 안은 뺀다
+const QUOTED = /"[^"\n]*"|“[^”\n]*”/g;
+const outsideQuotes = (line) => (line.trimStart().startsWith(">") ? "" : line.replace(QUOTED, ""));
 const BOLD = /\*\*[^*\n]+?\*\*/g;
 // 위험·질문·문답·오류 등 이 저장소에서 쓰는 ID: R-A3, D13, N8, Q4, H2, S1, E12, A10, P9, C1-2, #23
 // 링크 대상(](#1-목표…)의 앵커 번호는 세지 않는다.
@@ -43,7 +46,10 @@ for (const file of files) {
 
   lines.forEach((line, i) => {
     if (line.trimStart().startsWith("```")) inCode = !inCode;
-    for (const m of MUST_BE_ZERO) if (line.includes(m)) markers[m].push(i + 1);
+    for (const m of MUST_BE_ZERO) {
+      const target = m === "사용자" ? outsideQuotes(line) : line;
+      if (target.includes(m)) markers[m].push(i + 1);
+    }
     if (inCode) return;
     bold += (line.match(BOLD) ?? []).length;
     const ids = (line.match(ID) ?? []).length;
