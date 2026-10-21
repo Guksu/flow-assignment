@@ -1,0 +1,40 @@
+# 3단계 스택·배포 결정
+
+| 항목 | 내용 |
+|------|------|
+| 날짜 | 2026-10-21 |
+| 브랜치 | `docs/stack` |
+| PR | https://github.com/Guksu/flow-assignment/pull/3 |
+| 관련 경로 | `docs/analysis/03-stack.md`, `docs/analysis/02-risks.md`, `docs/design/2026-10-21-file-extension-policy.md`, `docs/ai-checklist.md`, `PROMPT_LOG.md` |
+
+## 1. 개요
+
+스택을 Vercel Hobby + Next.js App Router 풀스택 + Neon Free + Vercel Blob 비공개 스토어로 정했다. 기준은 "면접 당일 누구나 바로 열 수 있는가"이고, 무료 플랜 정책은 공식 문서 19개로 확인했다. 사용자가 처음 생각한 Vercel + Neon은 유지됐고, 업로드 파일 저장소만 Blob으로 분리했다. Neon Free는 1GB를 넘으면 삭제까지 실패해 정책 관리가 같이 멈추기 때문이다.
+
+## 2. 작업 내용
+
+- `docs/analysis/03-stack.md` — 호스팅 6·DB 5·파일 저장소 4개 비교, 업로드 경로, 정리·감시·요청 제한, 무료 한도 계산, 이 선택이 만드는 위험, 면접 당일 점검과 플랜 B, 결정 4건, 근거 문서 19개와 확인 방법, 확인하지 못한 것 6건
+- `docs/analysis/02-risks.md` — 스택 결정에 기대는 9개 행 갱신, D18·D19·O7 추가(93개)
+- `docs/design/2026-10-21-file-extension-policy.md` — 결정 표 6행(호스팅·DB, 프레임워크, 파일 저장, 업로드 한도, 정리·감시·요청 제한, DB 연결), 업로드 보관 24시간, 문답 #13~#16, 4단계에서 정할 것
+- `docs/ai-checklist.md` — A3을 "원문 대조 + 요지·링크·확인 방법, 긴 원문은 옮기지 않음"으로 다듬음
+- `PROMPT_LOG.md` — P7, 선택 기록 #13~#16, 도구(`curl` + `grep` 원문 대조)
+
+## 3. 검증 결과
+
+| 검증 | 명령 | 결과 |
+|------|------|------|
+| 근거 원문 대조 | `curl`로 Neon·Supabase·Render·Cloudtype 원문 HTML을 받아 `grep` | 요약 도구가 준 문장 모두 원문에 있음. 대조 중 Neon 저장 초과 시 삭제 실패 문장을 새로 찾음 |
+| 위험 표 숫자 | 표 행을 판정·출처별로 세는 Python 스크립트 | 93 / 신규 59 / 구현 77 · 문서로만 10 · 제외 6, ID 중복 없음 — 문서와 같음 |
+| 하네스 구조 | `npx guksu-harness check .` | error 0, warn 0 |
+| 제품 검증 | 해당 없음 | 코드 없음 |
+
+## 4. 확인 필요 · 후속
+
+- 4단계 설계 문서에서 정한다: 200개 제한 잠금 방식, 감사 로그 스키마, 쿠키 수명, 하루 경계, 로컬 개발 DB, Neon 연결 방법
+- 앱 뼈대 PR에서 실제로 확인한다: Hobby에서 함수 지역을 싱가포르로 바꿀 수 있는지, Neon 연산이 깨어나는 시간
+- Vercel 프로젝트 생성·배포·환경 변수 등록은 사용자 확인 후 진행한다
+
+## 5. 주의사항
+
+- 공식 문서의 무료 한도는 바뀔 수 있다. 숫자는 2026-10-21 기준이다
+- 요약 도구 결과로만 확인한 문서(10장 "요약 도구 결과")는 결정에 직접 쓰인 Cloudflare·Fly.io·Railway 탈락 근거다. 결론이 바뀔 만큼 중요한 수치는 아니라 원문 대조는 하지 않았다
