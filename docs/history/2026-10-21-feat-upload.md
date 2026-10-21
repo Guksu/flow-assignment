@@ -4,7 +4,7 @@
 |------|------|
 | 날짜 | 2026-10-21 |
 | 브랜치 | `feat/upload` |
-| PR | 생성 후 링크 추가 |
+| PR | [#9](https://github.com/Guksu/flow-assignment/pull/9) |
 | 관련 경로 | `migrations/002_upload_attempt.sql`, `src/server/{uploads,storage,cleanup,cron-auth}.ts`, `src/app/api/uploads/**`, `src/app/api/cron/cleanup/**`, `src/app/upload-panel.tsx`, `vercel.json`, `src/test/source-chars.test.ts` |
 
 ## 1. 개요
@@ -56,7 +56,15 @@
 - 화면에서 크기로 거부된 결과가 "(표시하지 않는 이름)"으로 보였습니다. 서버가 이름을 모르는 경우라 고른 파일 이름을 쓰도록 고쳤습니다.
 - `page.tsx`에 업로드 화면을 넣지 않은 채 브라우저 확인을 시작해, 파일 입력을 찾지 못했습니다. 넣은 뒤 다시 확인했습니다.
 
-## 6. 후속
+## 6. 판정 순서 변경 (PR을 올린 뒤)
+
+제가 "정책을 먼저 판별하는게 더 목적에 부합하지 않아?"라고 물었습니다. 설계 6장의 크기 → 이름 → 정책 순서는 Claude가 비용 기준 하나로 정한 것이었습니다(AI 오류 E19).
+
+- 결정(문답 #39·#40): 이름→정책 / 크기를 따로 판정하고 이름·정책 사유를 우선합니다. 요청 크기 선검사는 둡니다(실무의 ECS·EC2에는 플랫폼 본문 상한이 없음). 흘려 읽기는 실제라면으로 설계·위험 문서에 남겼습니다.
+- 구현: `src/domain/upload-check.ts`의 `checkUpload`를 서버(`handleUpload`)와 화면 안내가 같이 씁니다. 순서가 어긋날 수 없습니다.
+- 테스트를 먼저 썼을 때 9개 실패 → 250개 통과. 크기를 넘는 `Setup.EXE`가 "차단"으로 기록되고 내용은 읽지 않는 것, 크기를 넘어도 이름 오류가 먼저인 것을 고정했습니다.
+
+## 7. 후속
 
 - 운영 배포 뒤: curl 우회 차단(422), 플랫폼 413(4.5MB 초과)의 화면 안내, 크론 1회 실행 로그, 비공개 Blob에 실제로 저장되는지
 - 5분 이상 쉰 뒤 첫 요청 지연
