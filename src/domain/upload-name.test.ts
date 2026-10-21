@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseUploadName } from "./upload-name";
 
-// 설계 4.1 표 + 테스트를 쓰며 찾은 우회(안 보이는 글자·이모지). 사례 출처는 위험 목록 N1~N19
+// 설계 4.1 표 + 테스트를 쓰며 찾은 화면 속임(안 보이는 글자, 위험 N21)과 이모지 거부. 사례 출처는 위험 목록 N1~N22
 
 describe("parseUploadName — 확장자 읽기", () => {
   it.each([
@@ -85,8 +85,15 @@ describe("parseUploadName — 거부", () => {
     ["\u2764\uFE0F.txt", "❤️ — 이모지 모양 선택자"],
     ["\u{1F1F0}\u{1F1F7}.pdf", "🇰🇷 — 국기"],
     ["1\uFE0F\u20E3.txt", "1️⃣ — 키캡"],
+    ["\u{1F525}최종 기획안.pptx", "🔥 — 정상 파일도 막히는 비용"],
+    ["\u2705 확인완료.xlsx", "✅ — 정상 파일도 막히는 비용"],
   ])("%j → NAME_EMOJI (%s)", (raw) => {
     expect(parseUploadName(raw)).toEqual({ ok: false, code: "NAME_EMOJI" });
+  });
+
+  it("하트 경계: 글자 모양 ❤(U+2764)는 통과, 이모지 모양 선택자가 붙은 ❤️(U+2764 U+FE0F)는 거부", () => {
+    expect(parseUploadName("\u2764사랑.jpg")).toMatchObject({ ok: true, single: "jpg" });
+    expect(parseUploadName("\u2764\uFE0F사랑.jpg")).toEqual({ ok: false, code: "NAME_EMOJI" });
   });
 
   it.each([

@@ -7,7 +7,7 @@ import type { NameErrorCode } from "./upload-name";
 export const NAME_ERROR_MESSAGES: Record<NameErrorCode, string> = {
   NAME_EMPTY: "파일 이름이 비어 있습니다.",
   NAME_CONTROL_CHAR: "파일 이름에 보이지 않는 문자가 있습니다. 이름을 바꿔 다시 올려 주세요.",
-  NAME_EMOJI: "파일 이름에 이모지를 쓸 수 없습니다.",
+  NAME_EMOJI: "파일 이름에 이모지를 쓸 수 없습니다. 이모지를 빼고 이름을 바꿔 다시 올려 주세요.",
   NAME_FORBIDDEN_CHAR: '파일 이름에 쓸 수 없는 문자(< > : " | ? *)가 있습니다.',
   NAME_TOO_LONG: "파일 이름은 255자까지 쓸 수 있습니다.",
 };
