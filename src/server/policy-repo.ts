@@ -18,15 +18,15 @@ export type AddCustomResult =
   | { ok: false; code: "INVALID_EXTENSION"; reason: InputError }
   | { ok: false; code: "FIXED_EXTENSION" | "DUPLICATE_EXTENSION" | "CUSTOM_LIMIT_REACHED" };
 
-type Record = (action: AuditAction, ext: string | null, detail?: object) => Promise<void>;
+type AuditWriter = (action: AuditAction, ext: string | null, detail?: object) => Promise<void>;
 
 // 트랜잭션 단위 잠금이라 커밋·롤백 때 풀린다. Neon 풀러(트랜잭션 모드)에서도 쓸 수 있는 종류 (설계 6장).
 // record는 같은 트랜잭션에 이력 행을 넣고, 커밋이 끝난 뒤 서버 로그를 한 줄 남긴다.
 // 로그에는 요청 번호·행위·확장자만 쓴다 — IP나 다른 개인 정보는 남기지 않는다 (위험 D12·O2)
-async function withPolicyLock<T>(requestId: string, work: (client: PoolClient, record: Record) => Promise<T>): Promise<T> {
+async function withPolicyLock<T>(requestId: string, work: (client: PoolClient, record: AuditWriter) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   const changes: { action: AuditAction; ext: string | null }[] = [];
-  const record: Record = async (action, ext, detail = {}) => {
+  const record: AuditWriter = async (action, ext, detail = {}) => {
     await client.query("INSERT INTO policy_audit_log (action, ext, detail, request_id) VALUES ($1, $2, $3, $4)", [
       action,
       ext,

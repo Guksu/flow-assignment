@@ -32,6 +32,12 @@ export const POLICY_ERROR_MESSAGES = {
   SERVER_ERROR: "일시적인 오류입니다. 잠시 후 다시 시도해 주세요.",
 } as const;
 
+// 화면 오류 문구. 서버 오류(5xx)일 때만 요청 번호를 짧게 붙인다 — 서버 로그·이력의 번호와 같아 문의를 받으면 찾을 수 있다 (위험 O2).
+// 중복·형식 오류처럼 방문자가 고칠 수 있는 오류에 번호가 붙으면 시스템 장애처럼 보여서 붙이지 않는다
+export function errorText(message: string, status: number, requestId: string | null): string {
+  return status >= 500 && requestId ? `${message} (오류 번호 ${requestId.slice(0, 8)})` : message;
+}
+
 export function blockedMessage(matched: string, source: ExtensionSource): string {
   return `업로드할 수 없는 확장자입니다: ${matched} (${source === "fixed" ? "고정" : "커스텀"} 확장자)`;
 }

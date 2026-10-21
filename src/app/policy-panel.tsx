@@ -4,7 +4,7 @@
 // 바꾸는 요청은 서버 응답을 받은 뒤 서버 상태를 다시 읽어 맞춘다 — 화면이 먼저 바뀌지 않는다 (위험 X3).
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useState } from "react";
 import { normalizeCustomExtension } from "@/domain/custom-extension";
-import { CUSTOM_EXTENSION_MESSAGES, POLICY_ERROR_MESSAGES } from "@/domain/messages";
+import { CUSTOM_EXTENSION_MESSAGES, errorText, POLICY_ERROR_MESSAGES } from "@/domain/messages";
 
 type Policy = {
   fixed: { ext: string; blocked: boolean }[];
@@ -36,11 +36,10 @@ async function call<T>(path: string, method = "GET", body?: unknown): Promise<Re
     if (res.status === 204) return { ok: true, body: undefined as T };
     const json = await res.json().catch(() => null);
     if (res.ok) return { ok: true, body: json as T };
-    // 서버가 정한 문구를 그대로 보여 준다 — 화면과 API가 같은 문구 (위험 X7).
-    // 뒤에 오류 번호를 짧게 붙인다. 서버 로그·이력의 요청 번호와 같아서 문의를 받으면 찾아볼 수 있다 (위험 O2)
+    // 서버가 정한 문구를 그대로 보여 준다 — 화면과 API가 같은 문구 (위험 X7). 오류 번호는 서버 오류일 때만 붙는다
     const message: string = json?.error?.message ?? POLICY_ERROR_MESSAGES.SERVER_ERROR;
     const requestId: string | null = json?.error?.requestId ?? res.headers.get("x-request-id");
-    return { ok: false, message: requestId ? `${message} (오류 번호 ${requestId.slice(0, 8)})` : message };
+    return { ok: false, message: errorText(message, res.status, requestId) };
   } catch {
     return { ok: false, message: OFFLINE };
   }
