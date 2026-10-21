@@ -1,111 +1,448 @@
+/* 제출용 화면 (설계 7장). 값은 suta 토큰(간격·글자·색·반경·모션)에서만 고른다.
+ * 강조색은 거의 검정 — 브랜드 근거가 없는 관리 화면이라 토큰 기본값을 그대로 쓴다. */
+@import "../ui/layout-tokens.css";
+@import "../ui/motion-tokens.css";
+
 :root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  line-height: 1.6;
+  color-scheme: light;
+  font-family: var(--font-sans);
+  line-height: var(--leading-body);
+  color: var(--color-text);
+  /* 패턴의 공개 변수를 토큰에 잇는다 */
+  --loading-button-bg: var(--color-accent);
+  --loading-button-success: var(--color-success);
+  --loading-button-error: var(--color-danger);
+  --modal-radius: var(--radius-sheet);
+  --modal-bg: var(--color-surface);
+  --upload-accent: var(--color-accent);
+  --upload-border: var(--color-line);
+  --upload-radius: var(--radius-card);
+  --upload-dim: var(--color-text-tertiary);
+  --skeleton-base: var(--color-canvas);
 }
 
 body {
   margin: 0;
+  background: var(--color-canvas);
+  font-size: var(--text-body);
+  word-break: keep-all;
 }
 
-main {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 32px 16px;
+h1,
+h2,
+h3,
+p {
+  margin: 0;
 }
 
-/* 정책 화면 (설계 7장) — 기본 요소만, 좁은 화면에서는 1열 */
-section {
-  margin-block: 24px;
-}
-
+h1,
 h2 {
-  font-size: 1.15rem;
-  margin-block: 0 8px;
+  text-wrap: balance;
 }
 
-.muted {
-  opacity: 0.7;
-  margin-block: 4px;
+button,
+input {
+  font: inherit;
 }
 
-.notice {
-  min-height: 1.6em;
-  font-weight: 600;
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-.fixed,
-.chips,
-.audit {
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 페이지 뼈대 — 옅은 바탕 위 흰 패널 두 개(넓은 화면 2열, 좁은 화면 1열) */
+.page {
+  display: grid;
+  gap: var(--gap-group);
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-8) var(--page-inline) var(--space-12);
+}
+
+.page-head {
+  display: grid;
+  gap: var(--gap-item);
+}
+
+.page-head h1 {
+  font-size: var(--text-title);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.page-head p {
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap-group);
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .columns {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+.page-foot {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-small);
+}
+
+.page-foot a {
+  color: inherit;
+}
+
+/* 패널 — 카드는 테두리·그림자 없이 면의 톤 차이로만 나눈다 */
+.panel {
+  display: grid;
+  /* 트랙을 패널 폭에 묶는다 — 입력칸의 기본 폭(size=20)이 좁은 화면에서 패널 밖으로 밀어내지 않게 */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap-group);
+  padding: var(--space-6);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+/* 첫 줄: 제목 | 글자 버튼, 둘째 줄: 설명(폭 가득) — 좁은 화면에서도 설명이 버튼 옆에 끼지 않는다 */
+.panel-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--gap-item) var(--space-3);
+}
+
+.panel-head .panel-desc {
+  grid-column: 1 / -1;
+}
+
+.panel-head h2 {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.panel-desc {
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+/* 패널 안 묶음 — 묶음 안 8, 묶음 사이 24 + 얇은 선 */
+.block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap-item);
+}
+
+.block + .block {
+  padding-block-start: var(--gap-group);
+  border-block-start: 1px solid var(--color-line);
+}
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.block h3 {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+
+.count {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  min-block-size: 1.5em;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+.hint[data-tone='error'],
+.status-error {
+  color: var(--color-danger);
+}
+
+/* 버튼 — 채운 면은 주 행동(올리기) 하나, 나머지는 윤곽선·글자 */
+.button-outline,
+.button-text,
+.button-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-instant) var(--motion-ease-out),
+    color var(--motion-duration-instant) var(--motion-ease-out);
+}
+
+.button-outline {
+  border: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+}
+
+.button-text {
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.button-text:hover {
+  background: var(--color-canvas);
+  color: var(--color-text);
+}
+
+.button-danger {
+  border: none;
+  background: var(--color-danger);
+  color: var(--color-on-accent);
+  font-weight: var(--weight-semibold);
+}
+
+.loading-button {
+  min-block-size: var(--control-height);
+  border-radius: var(--radius-control);
+}
+
+.loading-button.is-outline {
+  border: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+
+.loading-button.is-outline[data-status='success'],
+.loading-button.is-outline[data-status='error'] {
+  color: var(--color-on-accent);
+}
+
+.loading-button:disabled,
+.button-outline:disabled,
+.button-text:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 고정 확장자 — 체크박스와 이름, 누르는 영역 44 */
+.fixed {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.fixed {
+.fixed label {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  cursor: pointer;
 }
 
+.fixed input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.fixed label:has(input:checked) {
+  font-weight: var(--weight-semibold);
+}
+
+/* 커스텀 확장자 — 입력칸은 회색 채움, 옆 버튼과 같은 높이 */
 .add {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .add input {
   flex: 1;
-  min-width: 0;
-  font: inherit;
-  padding: 6px 8px;
+  min-inline-size: 0;
+  block-size: var(--control-height);
+  padding-inline: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--color-canvas);
+  color: var(--color-text);
+}
+
+.add input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.add input:focus-visible {
+  outline-offset: 0;
+  background: var(--color-surface);
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .chips li {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  padding: 0 4px 0 10px;
+  gap: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas);
 }
 
 .chips button {
-  border: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: 32px;
+  border: none;
+  border-radius: var(--radius-full);
   background: none;
-  font: inherit;
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
-button {
-  font: inherit;
+.chips button:hover {
+  color: var(--color-text);
 }
 
-.audit li {
-  border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-  padding: 4px 0;
+/* 이력·결과 목록 — 행은 선 한 줄, 시각은 옅은 글자 + 같은 폭 숫자 */
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* 업로드 결과 상태 배지 (설계 7장 5) */
-.badge {
-  display: inline-block;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  padding: 0 6px;
-  font-size: 0.85em;
-  font-weight: 600;
+.rows li {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-line);
 }
 
-.badge.stored {
-  color: #1a7f37;
+.rows li:last-child {
+  border-block-end: none;
 }
 
-.badge.blocked,
-.badge.rejected,
-.badge.failed {
-  color: #cf222e;
+.row-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.row-time {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.row-detail {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+.row-name {
+  overflow-wrap: anywhere;
+}
+
+/* 업로드 결과 상태 — 알약 대신 상태 색 글자 */
+.state {
+  font-weight: var(--weight-semibold);
+}
+
+.state[data-status='stored'] {
+  color: var(--color-success);
+}
+
+.state[data-status='blocked'],
+.state[data-status='rejected'],
+.state[data-status='failed'] {
+  color: var(--color-danger);
+}
+
+.empty {
+  color: var(--color-text-tertiary);
+}
+
+/* 업로드 — 끌어다 놓는 영역 아래 주 버튼 폭 가득 */
+.upload-form {
+  display: grid;
+  gap: var(--gap-item);
+}
+
+.upload-form .loading-button {
+  inline-size: 100%;
+}
+
+.upload-chosen {
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* 초기화 확인 창 — 제목·설명·같은 폭 버튼 둘 */
+.dialog {
+  display: grid;
+  gap: var(--gap-item);
+}
+
+.dialog h2 {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.dialog p {
+  color: var(--color-text-secondary);
+}
+
+.dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+}
+
+/* 첫 로딩 — 실제 자리와 같은 크기의 뼈대 */
+.skeleton-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-outline,
+  .button-text,
+  .button-danger {
+    transition: none;
+  }
 }

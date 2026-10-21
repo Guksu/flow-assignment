@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+// 한국어 UI 글꼴 한 벌(Pretendard, SIL OFL 1.1). 쓰는 글자만 내려받는 분할 파일
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

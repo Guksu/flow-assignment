@@ -25,7 +25,7 @@ describe("오류 안내 문구", () => {
   it("차단 안내에 걸린 확장자와 출처를 넣는다", () => {
     expect(blockedMessage("tar.gz", "custom")).toContain("tar.gz");
     expect(blockedMessage("tar.gz", "custom")).toContain("커스텀");
-    expect(blockedMessage("exe", "fixed")).toContain("고정");
+    expect(blockedMessage("exe", "fixed")).toBe("고정 확장자 exe에 걸려 업로드할 수 없어요.");
   });
 });
 
@@ -49,7 +49,7 @@ describe("화면 오류 문구의 오류 번호", () => {
 
 describe("크기로 거부됐는데 브라우저 판정은 차단일 때 (PR #9 리뷰)", () => {
   it("둘 다 알려 준다 — 서버가 이름을 보기 전에 크기로 거부한 경우", () => {
-    expect(tooLargeMessage("exe")).toBe("차단 대상 확장자(exe)이고, 4MiB 상한도 넘어 서버가 받기 전에 거부했습니다.");
+    expect(tooLargeMessage("exe")).toBe("차단 대상 확장자(exe)이고, 4MiB 상한도 넘어 서버가 받기 전에 거부했어요.");
   });
 
   it("차단 대상이 아니면 크기 안내만", () => {
