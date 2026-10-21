@@ -13,3 +13,79 @@ main {
   margin: 0 auto;
   padding: 32px 16px;
 }
+
+/* 정책 화면 (설계 7장) — 기본 요소만, 좁은 화면에서는 1열 */
+section {
+  margin-block: 24px;
+}
+
+h2 {
+  font-size: 1.15rem;
+  margin-block: 0 8px;
+}
+
+.muted {
+  opacity: 0.7;
+  margin-block: 4px;
+}
+
+.notice {
+  min-height: 1.6em;
+  font-weight: 600;
+}
+
+.fixed,
+.chips,
+.audit {
+  padding: 0;
+  list-style: none;
+}
+
+.fixed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.add {
+  display: flex;
+  gap: 8px;
+}
+
+.add input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 6px 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0 4px 0 10px;
+}
+
+.chips button {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+button {
+  font: inherit;
+}
+
+.audit li {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  padding: 4px 0;
+}

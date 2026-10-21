@@ -21,6 +21,8 @@ pnpm dev                       # http://localhost:3000
 
 ## 검증
 
+`pnpm test`는 DB 없이 도는 테스트와 로컬 DB가 필요한 테스트를 함께 돌립니다. DB 테스트는 개발용 로컬 DB(`pnpm db:up`)를 같이 쓰고 데이터를 지웁니다. 그래서 DB 주소가 로컬이 아니면 시작하지 않습니다.
+
 ```bash
 pnpm typecheck && pnpm lint && pnpm test
 ```

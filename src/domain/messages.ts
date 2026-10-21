@@ -22,6 +22,22 @@ export const CUSTOM_EXTENSION_MESSAGES: Record<CustomExtensionError, string> = {
   FIXED_EXTENSION: "고정 확장자입니다. 위 고정 확장자 목록에서 체크해 주세요.",
 };
 
+// 정책 API 오류 (설계 8장). 커스텀 입력 오류는 위 CUSTOM_EXTENSION_MESSAGES를 그대로 쓴다
+export const POLICY_ERROR_MESSAGES = {
+  INVALID_BODY: "요청 형식이 올바르지 않습니다.",
+  BODY_TOO_LARGE: "요청 본문이 너무 큽니다.",
+  UNKNOWN_FIXED_EXTENSION: "없는 고정 확장자입니다.",
+  DUPLICATE_EXTENSION: "이미 추가된 확장자입니다.",
+  CUSTOM_LIMIT_REACHED: "커스텀 확장자는 200개까지 추가할 수 있습니다. 쓰지 않는 확장자를 지우거나 기본값으로 초기화해 주세요.",
+  SERVER_ERROR: "일시적인 오류입니다. 잠시 후 다시 시도해 주세요.",
+} as const;
+
+// 화면 오류 문구. 서버 오류(5xx)일 때만 요청 번호를 짧게 붙인다 — 서버 로그·이력의 번호와 같아 문의를 받으면 찾을 수 있다 (위험 O2).
+// 중복·형식 오류처럼 방문자가 고칠 수 있는 오류에 번호가 붙으면 시스템 장애처럼 보여서 붙이지 않는다
+export function errorText(message: string, status: number, requestId: string | null): string {
+  return status >= 500 && requestId ? `${message} (오류 번호 ${requestId.slice(0, 8)})` : message;
+}
+
 export function blockedMessage(matched: string, source: ExtensionSource): string {
   return `업로드할 수 없는 확장자입니다: ${matched} (${source === "fixed" ? "고정" : "커스텀"} 확장자)`;
 }
