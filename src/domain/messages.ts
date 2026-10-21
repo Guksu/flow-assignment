@@ -22,6 +22,15 @@ export const CUSTOM_EXTENSION_MESSAGES: Record<CustomExtensionError, string> = {
   FIXED_EXTENSION: "고정 확장자입니다. 위 고정 확장자 목록에서 체크해 주세요.",
 };
 
+// 정책 API 오류 (설계 8장). 커스텀 입력 오류는 위 CUSTOM_EXTENSION_MESSAGES를 그대로 쓴다
+export const POLICY_ERROR_MESSAGES = {
+  INVALID_BODY: "요청 형식이 올바르지 않습니다.",
+  UNKNOWN_FIXED_EXTENSION: "없는 고정 확장자입니다.",
+  DUPLICATE_EXTENSION: "이미 추가된 확장자입니다.",
+  CUSTOM_LIMIT_REACHED: "커스텀 확장자는 200개까지 추가할 수 있습니다. 쓰지 않는 확장자를 지우거나 기본값으로 초기화해 주세요.",
+  SERVER_ERROR: "일시적인 오류입니다. 잠시 후 다시 시도해 주세요.",
+} as const;
+
 export function blockedMessage(matched: string, source: ExtensionSource): string {
   return `업로드할 수 없는 확장자입니다: ${matched} (${source === "fixed" ? "고정" : "커스텀"} 확장자)`;
 }
