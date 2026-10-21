@@ -99,7 +99,7 @@ describe("커스텀 확장자 추가·삭제", () => {
 
   it.each([
     ["exe", { ok: false, code: "FIXED_EXTENSION" }],
-    ["ｅｘｅ", { ok: false, code: "FIXED_EXTENSION" }], // 화면 검사를 건너뛴 직접 요청도 같은 결과
+    ["\u{FF45}\u{FF58}\u{FF45}", { ok: false, code: "FIXED_EXTENSION" }], // 화면 검사를 건너뛴 직접 요청도 같은 결과
     ["*.exe", { ok: false, code: "INVALID_EXTENSION", reason: "WILDCARD" }],
     ["pkg.tar.zst", { ok: false, code: "INVALID_EXTENSION", reason: "TOO_MANY_SEGMENTS" }],
   ])("%j → %j", async (raw, result) => {

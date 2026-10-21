@@ -33,7 +33,7 @@ describe("decideUpload", () => {
 describe("파일 이름부터 판정까지", () => {
   it.each([
     ["Setup.EXE", "exe"],
-    ["evil.exe．", "exe"],
+    ["evil.exe\u{FF0E}", "exe"],
     ["backup.TAR.GZ", "tar.gz"],
     ["run.sh ", "sh"],
   ])("%j는 막힌다 (%s)", (raw, matched) => {

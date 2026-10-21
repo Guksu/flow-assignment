@@ -23,10 +23,10 @@ describe("parseUploadName — 확장자 읽기", () => {
     ["evil.exe\uFF0E", "exe", null], // N19 전각 마침표 — NFKC를 먼저
     ["evil.exe\u3000", "exe", null], // N19 전각 공백
     ["evil.exe\u00A0", "exe", null], // N19 줄바꿈 없는 공백
-    ["\uFF45\uFF56\uFF49\uFF4C.\uFF45\uFF58\uFF45", "exe", null], // N7 전각 ｅｖｉｌ.ｅｘｅ
+    ["\uFF45\uFF56\uFF49\uFF4C.\uFF45\uFF58\uFF45", "exe", null], // N7 전각 evil.exe
     ["evil\uFF0Eexe", "exe", null], // 가운데 전각 마침표도 점으로 본다(보수적)
     ["evil\u2024exe", "exe", null], // 한 점 리더(U+2024)도 NFKC로 점
-    ["evil.vb\u017F", "vbs", null], // 긴 s(ſ)는 NFKC로 s
+    ["evil.vb\u017F", "vbs", null], // 긴 s(U+017F)는 NFKC로 s
     ["..\\evil.exe", "exe", null], // N11 경로
     ["C:\\fakepath\\a.exe", "exe", null],
     ["../../a.exe", "exe", null],
@@ -36,7 +36,7 @@ describe("parseUploadName — 확장자 읽기", () => {
     expect(parseUploadName(raw)).toMatchObject({ ok: true, single, compound });
   });
 
-  it("닮은 글자(러시아 е)는 바꾸지 않는다 — 막지 않고 문서로만 남긴 한계", () => {
+  it("닮은 글자(러시아 \u{435})는 바꾸지 않는다 — 막지 않고 문서로만 남긴 한계", () => {
     expect(parseUploadName("evil.\u0435xe")).toMatchObject({ ok: true, single: "\u0435xe" });
   });
 
@@ -72,7 +72,7 @@ describe("parseUploadName — 거부", () => {
     ["evil.exe\uFEFF", "BOM"],
     ["evil.exe\u{E0041}", "태그 문자"],
     ["evil.exe\u2028", "줄 구분자"],
-    ["evil.ex\u3164e", "한글 채움 문자(ㅤ)"],
+    ["evil.ex\u3164e", "한글 채움 문자(\u{3164})"],
     ["evil.ex\uFE00e", "변형 선택자"],
     ["a\u200Cb.txt", "ZWNJ — 이모지·특정 문자용이지만 안 보이는 글자라 거부"],
   ])("%j → NAME_CONTROL_CHAR (%s)", (raw) => {
@@ -80,18 +80,18 @@ describe("parseUploadName — 거부", () => {
   });
 
   it.each([
-    ["\u{1F600}.txt", "😀"],
-    ["\u{1F469}\u200D\u{1F4BB}.txt", "👩‍💻 — 안 보이는 ZWJ보다 이모지로 먼저 안내"],
-    ["\u2764\uFE0F.txt", "❤️ — 이모지 모양 선택자"],
-    ["\u{1F1F0}\u{1F1F7}.pdf", "🇰🇷 — 국기"],
-    ["1\uFE0F\u20E3.txt", "1️⃣ — 키캡"],
-    ["\u{1F525}최종 기획안.pptx", "🔥 — 정상 파일도 막히는 비용"],
+    ["\u{1F600}.txt", "\u{1F600}"],
+    ["\u{1F469}\u200D\u{1F4BB}.txt", "\u{1F469}\u{200D}\u{1F4BB} — 안 보이는 ZWJ보다 이모지로 먼저 안내"],
+    ["\u2764\uFE0F.txt", "\u{2764}\u{FE0F} — 이모지 모양 선택자"],
+    ["\u{1F1F0}\u{1F1F7}.pdf", "\u{1F1F0}\u{1F1F7} — 국기"],
+    ["1\uFE0F\u20E3.txt", "1\u{FE0F}\u{20E3} — 키캡"],
+    ["\u{1F525}최종 기획안.pptx", "\u{1F525} — 정상 파일도 막히는 비용"],
     ["\u2705 확인완료.xlsx", "✅ — 정상 파일도 막히는 비용"],
   ])("%j → NAME_EMOJI (%s)", (raw) => {
     expect(parseUploadName(raw)).toEqual({ ok: false, code: "NAME_EMOJI" });
   });
 
-  it("하트 경계: 글자 모양 ❤(U+2764)는 통과, 이모지 모양 선택자가 붙은 ❤️(U+2764 U+FE0F)는 거부", () => {
+  it("하트 경계: 글자 모양 \u{2764}(U+2764)는 통과, 이모지 모양 선택자가 붙은 \u{2764}\u{FE0F}(U+2764 U+FE0F)는 거부", () => {
     expect(parseUploadName("\u2764사랑.jpg")).toMatchObject({ ok: true, single: "jpg" });
     expect(parseUploadName("\u2764\uFE0F사랑.jpg")).toEqual({ ok: false, code: "NAME_EMOJI" });
   });

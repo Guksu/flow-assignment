@@ -3,13 +3,15 @@ import {
   blockedMessage,
   CUSTOM_EXTENSION_MESSAGES,
   errorText,
+  tooLargeMessage,
   NAME_ERROR_MESSAGES,
   POLICY_ERROR_MESSAGES,
+  UPLOAD_ERROR_MESSAGES,
 } from "./messages";
 
 // 위험 X7 — 화면과 API가 같은 코드에서 같은 문구를 만든다
 describe("오류 안내 문구", () => {
-  it.each(Object.entries({ ...NAME_ERROR_MESSAGES, ...CUSTOM_EXTENSION_MESSAGES, ...POLICY_ERROR_MESSAGES }))(
+  it.each(Object.entries({ ...NAME_ERROR_MESSAGES, ...CUSTOM_EXTENSION_MESSAGES, ...POLICY_ERROR_MESSAGES, ...UPLOAD_ERROR_MESSAGES }))(
     "%s에 문구가 있다",
     (_code, message) => {
       expect(message.trim()).not.toBe("");
@@ -42,5 +44,15 @@ describe("화면 오류 문구의 오류 번호", () => {
 
   it("번호가 없으면 문구만", () => {
     expect(errorText(POLICY_ERROR_MESSAGES.SERVER_ERROR, 503, null)).toBe(POLICY_ERROR_MESSAGES.SERVER_ERROR);
+  });
+});
+
+describe("크기로 거부됐는데 브라우저 판정은 차단일 때 (PR #9 리뷰)", () => {
+  it("둘 다 알려 준다 — 서버가 이름을 보기 전에 크기로 거부한 경우", () => {
+    expect(tooLargeMessage("exe")).toBe("차단 대상 확장자(exe)이고, 4MiB 상한도 넘어 서버가 받기 전에 거부했습니다.");
+  });
+
+  it("차단 대상이 아니면 크기 안내만", () => {
+    expect(tooLargeMessage(null)).toBe(UPLOAD_ERROR_MESSAGES.FILE_TOO_LARGE);
   });
 });

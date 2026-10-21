@@ -12,10 +12,11 @@ export type ParsedUploadName =
   | { ok: false; code: NameErrorCode };
 
 export const MAX_NAME_LENGTH = 255;
+export const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4MiB (문답 #16). 화면 안내와 서버 판정이 같은 값을 쓴다
 
 // 이모지: 기본이 이모지 모양인 글자, 이모지 모양 선택자(U+FE0F), 키캡(U+20E3).
 // ©·™·®처럼 기본이 글자 모양인 기호는 허용한다
-const EMOJI = /[\p{Emoji_Presentation}️⃣]/u;
+const EMOJI = /[\p{Emoji_Presentation}\u{FE0F}\u{20E3}]/u;
 // 안 보이는 글자: 제어·서식 문자, 줄·문단 구분자, 유니코드가 "보이지 않음"으로 지정한 글자
 // (Default_Ignorable_Code_Point — soft hyphen, zero width 문자, 한글 채움 문자, 변형 선택자, 태그 문자 등)
 const INVISIBLE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}]/u;
@@ -25,7 +26,7 @@ const FORBIDDEN = /[<>:"|?*]/;
 export function parseUploadName(raw: string): ParsedUploadName {
   const base = raw.slice(Math.max(raw.lastIndexOf("/"), raw.lastIndexOf("\\")) + 1);
   if (base === "") return { ok: false, code: "NAME_EMPTY" };
-  // 이모지를 먼저 본다 — 👩‍💻에는 안 보이는 ZWJ가 들어 있지만 안내는 이모지가 맞다
+  // 이모지를 먼저 본다 — 이모지 이음 글자(U+1F469 U+200D U+1F4BB)에는 안 보이는 ZWJ가 들어 있지만 안내는 이모지가 맞다
   if (EMOJI.test(base)) return { ok: false, code: "NAME_EMOJI" };
   if (INVISIBLE.test(base)) return { ok: false, code: "NAME_CONTROL_CHAR" };
   if (FORBIDDEN.test(base)) return { ok: false, code: "NAME_FORBIDDEN_CHAR" };

@@ -9,9 +9,9 @@ describe("normalizeCustomExtension — 받아들이는 입력", () => {
     ["sh", "sh"],
     [" .SH ", "sh"], // 앞뒤 공백, 앞쪽 점, 대문자
     ["..sh", "sh"],
-    ["．sh", "sh"], // 전각 마침표로 시작 — NFKC를 먼저 해야 앞쪽 점 제거에 걸림 (AI 오류 E12)
+    ["\u{FF0E}sh", "sh"], // 전각 마침표로 시작 — NFKC를 먼저 해야 앞쪽 점 제거에 걸림 (AI 오류 E12)
     ["TAR.GZ", "tar.gz"],
-    ["．．tar.gz", "tar.gz"],
+    ["\u{FF0E}\u{FF0E}tar.gz", "tar.gz"],
     ["exe.txt", "exe.txt"], // 고정 확장자와 같지 않은 복합은 허용
     ["㎉", "kcal"], // ㎉ — NFKC로 글자가 늘어남
     ["a".repeat(20), "a".repeat(20)],
@@ -23,7 +23,7 @@ describe("normalizeCustomExtension — 받아들이는 입력", () => {
 describe("normalizeCustomExtension — 거부", () => {
   it.each([
     ["exe", "FIXED_EXTENSION"], // 문답 #3 — 고정 쪽으로 안내
-    ["ｅｘｅ", "FIXED_EXTENSION"], // ｅｘｅ
+    ["\u{FF45}\u{FF58}\u{FF45}", "FIXED_EXTENSION"], // 전각 exe
     ["JS", "FIXED_EXTENSION"],
     ["pkg.tar.zst", "TOO_MANY_SEGMENTS"], // 복합은 두 단까지
     ["tar..gz", "INVALID_FORMAT"],
@@ -33,7 +33,7 @@ describe("normalizeCustomExtension — 거부", () => {
     ["한글", "INVALID_CHAR"],
     ["s h", "INVALID_CHAR"],
     ["sh!", "INVALID_CHAR"],
-    ["ex​e", "INVALID_CHAR"], // 안 보이는 글자
+    ["ex\u{200B}e", "INVALID_CHAR"], // 안 보이는 글자
     ["\u{1F600}", "INVALID_CHAR"], // 이모지
     ["", "EMPTY"],
     ["...", "EMPTY"],
