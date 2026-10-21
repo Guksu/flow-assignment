@@ -4,7 +4,7 @@
 |------|------|
 | 날짜 | 2026-10-21 |
 | 브랜치 | `docs/stack` |
-| PR | 생성 후 링크 추가 |
+| PR | https://github.com/Guksu/flow-assignment/pull/3 |
 | 관련 경로 | `docs/analysis/03-stack.md`, `docs/analysis/02-risks.md`, `docs/design/2026-10-21-file-extension-policy.md`, `docs/ai-checklist.md`, `PROMPT_LOG.md` |
 
 ## 1. 개요
