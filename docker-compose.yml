@@ -1,0 +1,16 @@
+# 로컬 개발·테스트용 Postgres (설계 2.5). 배포 DB(Neon)와 같은 메이저 버전 17.
+# 여기 적힌 계정은 로컬 전용이다.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flow
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flow"]
+      interval: 2s
+      timeout: 2s
+      retries: 15

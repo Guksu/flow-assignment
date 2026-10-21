@@ -23,19 +23,23 @@
       "status": "evidence",
       "basis": "기본 브랜치",
       "evidence": [
-        "git branch --show-current (다른 후보 없음)"
+        "git symbolic-ref refs/remotes/origin/HEAD"
       ]
     },
     "rules.branchPrefixes": {
       "value": [
         "feat/",
         "fix/",
-        "refactor/",
-        "docs/"
+        "test/",
+        "docs/",
+        "chore/"
       ],
-      "status": "assumed",
-      "basis": "관례가 없어 기본값",
-      "evidence": []
+      "status": "evidence",
+      "basis": "지침 문서에 적힌 접두어",
+      "evidence": [
+        "docs/harness-rules.md:40",
+        "docs/harness-rules.md:47"
+      ]
     },
     "protection.protectedBranches": {
       "value": [
@@ -58,7 +62,20 @@
       "evidence": []
     },
     "verification.checks": {
-      "value": [],
+      "value": [
+        {
+          "name": "typecheck",
+          "command": "pnpm typecheck"
+        },
+        {
+          "name": "lint",
+          "command": "pnpm lint"
+        },
+        {
+          "name": "test",
+          "command": "pnpm test"
+        }
+      ],
       "status": "confirmed",
       "basis": "팀 결정 (compose --set)",
       "evidence": []
@@ -79,6 +96,6 @@
   "generated": {
     ".agents/hooks/blockGitMutation.config.json": "775a1991003dbb657c5fc00fe4e34de66e8999dee72a90f9c4b5ac90f4561833",
     ".agents/hooks/branchGuard.config.json": "5b3aaf8cf681c80fc91b81e26e870d114bd6452ba097e65743fe4911cb23f4b9",
-    "docs/harness-rules.md": "bbf78f63dde43f13b6c8940894e5c13ee666654215af2ec5e5f8beaee607c63c"
+    "docs/harness-rules.md": "b83866e90539a6f5326c9dc7fce03c452e006aeec1450322347c09c40d774280"
   }
 }
