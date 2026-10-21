@@ -5,7 +5,7 @@
 | 날짜 | 2026-10-21 |
 | 브랜치 | `docs/risks` |
 | PR | https://github.com/Guksu/flow-assignment/pull/2 |
-| 관련 경로 | `docs/analysis/02-risks.md`, `docs/design/2026-10-21-file-extension-policy.md`, `PROMPT_LOG.md` |
+| 관련 경로 | `docs/analysis/02-risks.md`, `docs/design/2026-10-21-file-extension-policy.md`, `docs/ai-checklist.md`, `docs/harness-rules.md`, `PROMPT_LOG.md` |
 
 ## 1. 개요
 
@@ -16,7 +16,8 @@
 - `docs/analysis/02-risks.md` — 영역 8개(D 공개 배포, N 파일명, U 업로드, P 정책, X 화면, O 운영, G 공개 저장소, V AI 개발 과정), 항목마다 판정·근거·출처, 과제 3장 대응표, 근거 문서 링크, Codex 검토 방법과 비교 표 자리
 - `docs/design/2026-10-21-file-extension-policy.md` — 결정 표 4행(정책 편집, 변경 이력, 업로드 결과 노출, 익명 방문자 ID), 문답 #10~#12, AI 오류 노트 E4(AI 자체 검증), "잡은 계기" 열로 사용자 지적과 자체 검증 구분
 - `docs/analysis/01-requirements.md` — Q7·Q8 확정 표시
-- `PROMPT_LOG.md` — P3~P5, 선택 기록 #10~#12, 도구 추가, Codex 행 갱신
+- `PROMPT_LOG.md` — P3~P6, 선택 기록 #10~#12, 도구 추가, Codex 행 갱신
+- `docs/ai-checklist.md` — AI 오류 노트에서 뽑은 반복 패턴 9개와 점검 시점, 팀 규칙에서 참조 (사용자 요청)
 - Codex 반영: 위험 표 13장 비교 표, 새 행 8개(D16·D17·N19·N20·P13·X9·G6·G7), D1·D8 판정 변경, 설계 문서 결정 표 4행 수정, AI 오류 노트 E5~E9, 1단계 기본값 D1(정규화 순서)·D12(이름 길이 단위) 수정
 
 ## 3. 검증 결과
