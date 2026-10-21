@@ -30,8 +30,14 @@ export function startRequest() {
   const requestId = crypto.randomUUID();
   const headers = { "Cache-Control": "no-store", "X-Request-Id": requestId };
 
-  const fail = (status: number, code: string, message: string, details?: Record<string, unknown>) =>
-    Response.json({ error: { code, message, requestId, ...(details && { details }) } }, { status, headers });
+  // extra: 오류 본문 옆에 함께 보낼 값 (업로드는 거부된 시도 정보도 돌려준다)
+  const fail = (
+    status: number,
+    code: string,
+    message: string,
+    details?: Record<string, unknown>,
+    extra?: Record<string, unknown>,
+  ) => Response.json({ error: { code, message, requestId, ...(details && { details }) }, ...extra }, { status, headers });
 
   return {
     requestId,

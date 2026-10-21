@@ -100,7 +100,7 @@ describe("POST /api/policy/custom", () => {
 
   it.each([
     ["exe", "FIXED_EXTENSION"],
-    ["ｅｘｅ", "FIXED_EXTENSION"],
+    ["\u{FF45}\u{FF58}\u{FF45}", "FIXED_EXTENSION"],
   ])("%j → 409 %s", async (ext, code) => {
     const res = await post({ ext });
     expect(res.status).toBe(409);

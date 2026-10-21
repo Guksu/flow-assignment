@@ -22,7 +22,7 @@ export function normalizeCustomExtension(
   fixedExtensions: readonly string[],
 ): NormalizedCustomExtension {
   if ([...raw].length > MAX_EXTENSION_LENGTH) return fail("TOO_LONG");
-  // NFKC를 먼저 해야 전각 마침표(．sh)가 앞쪽 점 제거에 걸린다 (AI 오류 E12)
+  // NFKC를 먼저 해야 전각 마침표(U+FF0E)로 시작하는 입력이 앞쪽 점 제거에 걸린다 (AI 오류 E12)
   const ext = raw.normalize("NFKC").trim().toLowerCase().replace(/^\.+/, "");
   if (ext === "") return fail("EMPTY");
   if (ext.includes("*")) return fail("WILDCARD");

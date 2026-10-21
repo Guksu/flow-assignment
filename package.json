@@ -14,6 +14,7 @@
     "db:up": "docker compose up -d --wait db"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.2",
     "@vercel/functions": "^3.10.2",
     "next": "16.4.2",
     "pg": "^8.23.1",

@@ -89,3 +89,23 @@ button {
   border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
   padding: 4px 0;
 }
+
+/* 업로드 결과 상태 배지 (설계 7장 5) */
+.badge {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0 6px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.badge.stored {
+  color: #1a7f37;
+}
+
+.badge.blocked,
+.badge.rejected,
+.badge.failed {
+  color: #cf222e;
+}

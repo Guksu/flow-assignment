@@ -32,6 +32,14 @@ export const POLICY_ERROR_MESSAGES = {
   SERVER_ERROR: "일시적인 오류입니다. 잠시 후 다시 시도해 주세요.",
 } as const;
 
+// 업로드 API 오류 (설계 8장). 이름 오류는 NAME_ERROR_MESSAGES, 차단은 blockedMessage를 쓴다
+export const UPLOAD_ERROR_MESSAGES = {
+  INVALID_REQUEST: "파일 하나를 골라 올려 주세요.",
+  FILE_TOO_LARGE: "파일은 4MiB까지 올릴 수 있습니다.",
+  DAILY_LIMIT_REACHED: "오늘 저장할 수 있는 업로드 50건을 모두 썼습니다. 내일 다시 시도해 주세요. 차단 확장자 시험은 계속할 수 있습니다.",
+  STORAGE_ERROR: "파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+} as const;
+
 // 화면 오류 문구. 서버 오류(5xx)일 때만 요청 번호를 짧게 붙인다 — 서버 로그·이력의 번호와 같아 문의를 받으면 찾을 수 있다 (위험 O2).
 // 중복·형식 오류처럼 방문자가 고칠 수 있는 오류에 번호가 붙으면 시스템 장애처럼 보여서 붙이지 않는다
 export function errorText(message: string, status: number, requestId: string | null): string {
