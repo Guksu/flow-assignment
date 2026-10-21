@@ -4,7 +4,7 @@
 |------|------|
 | 날짜 | 2026-10-21 ~ 2026-10-22 |
 | 브랜치 | `docs/submission` |
-| PR | 생성 후 링크 추가 |
+| PR | [#11](https://github.com/Guksu/flow-assignment/pull/11) |
 | 관련 경로 | `README.md`, `CONSIDERATIONS.md`, `PROMPT_LOG.md`, `docs/prompt-inputs.md`, `docs/design/2026-10-21-file-extension-policy.md` 3장·14장·15장, `docs/analysis/02-risks.md`, `docs/ai-checklist.md`, `docs/writing-guide.md`, `scripts/check-docs.mjs` |
 
 ## 1. 개요
