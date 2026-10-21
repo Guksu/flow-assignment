@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "tool": "guksu-harness",
+  "composedWith": "5.1.0",
+  "decisions": {
+    "apps": {
+      "value": [
+        "claude",
+        "codex"
+      ],
+      "status": "confirmed",
+      "basis": "팀 결정 (compose --set)",
+      "evidence": []
+    },
+    "rules.guidance": {
+      "value": [],
+      "status": "evidence",
+      "basis": "지침 문서 없음",
+      "evidence": []
+    },
+    "rules.baseBranch": {
+      "value": "main",
+      "status": "evidence",
+      "basis": "기본 브랜치",
+      "evidence": [
+        "git branch --show-current (다른 후보 없음)"
+      ]
+    },
+    "rules.branchPrefixes": {
+      "value": [
+        "feat/",
+        "fix/",
+        "refactor/",
+        "docs/"
+      ],
+      "status": "assumed",
+      "basis": "관례가 없어 기본값",
+      "evidence": []
+    },
+    "protection.protectedBranches": {
+      "value": [
+        "main"
+      ],
+      "status": "confirmed",
+      "basis": "팀 결정 (compose --set)",
+      "evidence": []
+    },
+    "protection.allowCommitPush": {
+      "value": true,
+      "status": "confirmed",
+      "basis": "팀 결정 (compose --set)",
+      "evidence": []
+    },
+    "protection.blockAttribution": {
+      "value": true,
+      "status": "confirmed",
+      "basis": "팀 결정 (compose --set)",
+      "evidence": []
+    },
+    "verification.checks": {
+      "value": [],
+      "status": "confirmed",
+      "basis": "팀 결정 (compose --set)",
+      "evidence": []
+    },
+    "verification.gate": {
+      "value": "rules",
+      "status": "evidence",
+      "basis": "검증 명령이 없어 훅으로 강제할 것이 없다",
+      "evidence": []
+    },
+    "records.history": {
+      "value": "required",
+      "status": "confirmed",
+      "basis": "팀 결정 (compose --set)",
+      "evidence": []
+    }
+  },
+  "generated": {
+    ".agents/hooks/blockGitMutation.config.json": "775a1991003dbb657c5fc00fe4e34de66e8999dee72a90f9c4b5ac90f4561833",
+    ".agents/hooks/branchGuard.config.json": "5b3aaf8cf681c80fc91b81e26e870d114bd6452ba097e65743fe4911cb23f4b9",
+    "docs/harness-rules.md": "bbf78f63dde43f13b6c8940894e5c13ee666654215af2ec5e5f8beaee607c63c"
+  }
+}

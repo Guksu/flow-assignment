@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "files": {
+    ".agents/hooks/blockGitMutation.mjs": {
+      "hash": "312ed8359a292d576d179af4e56376756cadcc08d782193ac143c25bd4145a0f",
+      "version": "5.1.0"
+    },
+    ".agents/hooks/blockSecretAccess.mjs": {
+      "hash": "0f73cd667ef354bc0487a9e82c3b273f1e70909c1c1570b9c9c45060340d7081",
+      "version": "5.1.0"
+    },
+    ".agents/hooks/branchGuard.mjs": {
+      "hash": "c4a379a28802b5c065c0b52f1e40069d08c22a6d5ab9c8e743da99ae3c3f042c",
+      "version": "5.1.0"
+    },
+    ".agents/harness-core-rules.md": {
+      "hash": "33bb73aa7ba015fe5aa8762e9dbd00a0724552e295f1bb4e9c4b07cfdd41c86b",
+      "version": "5.1.0"
+    },
+    "docs/templates/history.md": {
+      "hash": "edbc39129a6317e3fe0107b429e81afbe82b2d26cc47421d394c0ed841e37f02",
+      "version": "5.1.0"
+    },
+    "docs/templates/handoff.md": {
+      "hash": "16a39e899d02ad58868cee5c93feb390b6d03c4f742db7b49f1f8c765ed5b111",
+      "version": "5.1.0"
+    }
+  },
+  "ownedHooks": [
+    {
+      "app": "claude",
+      "event": "PreToolUse",
+      "entry": {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/blockGitMutation.mjs\""
+          }
+        ]
+      }
+    },
+    {
+      "app": "claude",
+      "event": "PreToolUse",
+      "entry": {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/blockSecretAccess.mjs\""
+          }
+        ]
+      }
+    },
+    {
+      "app": "claude",
+      "event": "PreToolUse",
+      "entry": {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/branchGuard.mjs\""
+          }
+        ]
+      }
+    },
+    {
+      "app": "codex",
+      "event": "PreToolUse",
+      "entry": {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".agents/hooks/blockGitMutation.mjs\""
+          }
+        ]
+      }
+    },
+    {
+      "app": "codex",
+      "event": "PreToolUse",
+      "entry": {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".agents/hooks/blockSecretAccess.mjs\""
+          }
+        ]
+      }
+    },
+    {
+      "app": "codex",
+      "event": "PreToolUse",
+      "entry": {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".agents/hooks/branchGuard.mjs\""
+          }
+        ]
+      }
+    }
+  ],
+  "ownedDeny": [
+    "Read(./.env)",
+    "Read(./.env.*)",
+    "Read(./**/credentials*)",
+    "Read(./**/*.pem)",
+    "Read(./**/secrets/**)"
+  ],
+  "ejected": [],
+  "version": "5.1.0",
+  "profile": "basic",
+  "verifier": false,
+  "apps": [
+    "claude",
+    "codex"
+  ]
+}

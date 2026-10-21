@@ -1,0 +1,5 @@
+{
+  "allowCommitPush": true,
+  "requireHistoryDoc": true,
+  "blockAttribution": true
+}

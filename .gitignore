@@ -1,0 +1,18 @@
+_workspace/
+.agents/harness-backups/
+.agents/hooks/verifierGate.*.state.json
+.agents/hooks/verifierGate.*.tmp
+
+# deps & build
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# env & os
+.env*
+!.env.example
+.vercel
+.DS_Store
