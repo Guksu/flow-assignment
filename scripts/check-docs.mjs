@@ -19,9 +19,10 @@ const files = process.argv.length > 2 ? process.argv.slice(2) : defaults;
 const MUST_BE_ZERO = ["[초안]", "사용자", "확인 필요"];
 const BOLD = /\*\*[^*\n]+?\*\*/g;
 // 위험·질문·문답·오류 등 이 저장소에서 쓰는 ID: R-A3, D13, N8, Q4, H2, S1, E12, A10, P9, C1-2, #23
+// 링크 대상(](#1-목표…)의 앵커 번호는 세지 않는다.
 // 합니다체 문서에서 "~합니다."가 아닌 "~다."로 끝나는 문장 (인용·코드·표 밖)
 const PLAIN_ENDING = /(?<!니)다\.(?=\s|$|\))/g;
-const ID = /(?<![\w-])(?:R-[AB]\d{1,2}|C\d-\d|[DNUPXOGVHQSEAP]\d{1,2}|#\d{1,3})(?![\w])/g;
+const ID = /(?<![\w-]|\]\()(?:R-[AB]\d{1,2}|C\d-\d|[DNUPXOGVHQSEAP]\d{1,2}|#\d{1,3})(?![\w])/g;
 
 let failed = false;
 const rows = [];
