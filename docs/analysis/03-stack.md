@@ -121,6 +121,7 @@ Vercel Hobby의 "개인·비상업 용도"에 채용 과제 시연이 들어간�
 
 - **전날**: 상태 감시 기록 확인, 배포 URL에서 정책 변경 → 업로드 차단·허용을 한 번씩 해 본다
 - **30분 전**: URL을 열어 함수와 DB를 깨운다. 필요하면 "기본값으로 초기화"
+- **오늘 저장 수 (위험 D4)**: 하루 50건이 차면 KST 자정까지 정상 파일 업로드가 막히고, 정책 초기화로는 풀리지 않는다. Neon 콘솔에서 `SELECT count(*) FROM upload_attempt WHERE status = 'stored' AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Seoul') AT TIME ZONE 'Asia/Seoul'`로 확인한다. 막혔을 때는 ① 차단 시연(실행 파일 업로드)은 그대로 된다 ② 정상 업로드는 로컬 실행(플랜 B)으로 보인다 ③ 꼭 배포에서 보여야 하면 오늘 저장된 행의 `expires_at`을 `now()`로 바꾸고 정리 크론을 `CRON_SECRET`으로 한 번 호출해 파일과 행을 지운다(Blob 작업 수를 쓰므로 한 번만)
 - **플랜 B**: Vercel이 한도 소진으로 멈췄다면, 저장소를 로컬에서 실행해 화면을 공유한다(README의 실행 방법 그대로 — 위험 G7). 이를 위해 로컬 실행이 배포용 DB 없이도 되게 한다(로컬 Postgres 또는 Neon 개발용 브랜치) — 4단계에서 정함
 
 ## 9. 결정 (확정)
