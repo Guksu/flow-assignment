@@ -1,0 +1,11 @@
+export default function Home() {
+  return (
+    <main>
+      <h1>파일 확장자 차단</h1>
+      <p>정책 관리 화면과 업로드 시험은 다음 단계에서 이 자리에 들어옵니다.</p>
+      <p>
+        상태 확인: <a href="/api/health">/api/health</a>
+      </p>
+    </main>
+  );
+}

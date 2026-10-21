@@ -5,6 +5,10 @@ _workspace/
 
 # deps & build
 node_modules/
+/.pnp
+.pnp.*
+next-env.d.ts
+/build
 dist/
 .next/
 out/
