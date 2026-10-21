@@ -36,7 +36,7 @@
 위 생성 구간과 겹치면 이 절이 우선한다.
 
 - 설계 단일 출처: `docs/design/2026-10-21-file-extension-policy.md` (4단계 완성 전까지 작성 중). 단계별 분석은 `docs/analysis/`
-- 문서 작성 가이드: `docs/writing-guide.md` — 제출 문서(README·CONSIDERATIONS·PROMPT_LOG·설계 문서)는 이 가이드를 따른다. 판단의 주어는 "나"(과제 제출자), 그 사람의 말은 원문 인용, AI가 대신 쓴 의도·이유는 줄 앞에 `[초안]`. PR 전에 `node scripts/check-docs.mjs`를 돌리고 결과를 PR 본문에 적는다
+- 문서 작성 가이드: `docs/writing-guide.md` — 제출 문서(README·CONSIDERATIONS·PROMPT_LOG·설계 문서)는 이 가이드를 따른다. 설명하는 합니다체, 판단의 주어는 1인칭(과제 제출자 — "저/제가"), 그 사람의 말은 원문 인용, AI가 대신 쓴 의도·이유는 줄 앞에 `[초안]`. PR 전에 `node scripts/check-docs.mjs`를 돌리고 결과를 PR 본문에 적는다
 - AI 작업 점검표: `docs/ai-checklist.md` — 이 과제에서 AI가 반복한 실수 패턴. 추천·결정 기록, 판정 규칙 정의, 외부 인용, 수치 기재, 결정 변경, push 전에 그 시점의 항목을 확인한다. AI 오류 노트에 새 항목을 적으면 점검표에 사례를 붙이거나 패턴을 추가한다
 - 브랜치·PR: main 보호. 기능 단위 브랜치(`feat/`·`fix/`·`test/`·`docs/`·`chore/`) → PR(베이스 main) → 사용자 리뷰 후 머지. **PR 생성까지는 이 과제의 상시 요청**이고 머지는 사용자가 한다
 - 커밋: `feat:`/`fix:`/`docs:`/`test:`/`chore:` + 한국어 제목, 본문은 글머리표. PR 본문: `## 개요` / `## 주요 변경`(커밋 해시) / `## 확인한 것`(실행한 명령과 결과) / `## 참고`(확인 못 한 것), 합니다체. Claude 작성자 표기·워터마크 금지
