@@ -4,7 +4,7 @@
 |------|------|
 | 날짜 | 2026-10-21 |
 | 브랜치 | `feat/policy` |
-| PR | 생성 후 링크 추가 |
+| PR | [#8](https://github.com/Guksu/flow-assignment/pull/8) |
 | 관련 경로 | `migrations/001_policy.sql`, `src/server/policy-repo.ts`, `src/server/api.ts`, `src/app/api/policy/**`, `src/app/policy-panel.tsx`, `src/test/**`, `vitest.config.ts` |
 
 ## 1. 개요
@@ -41,10 +41,11 @@
 ## 4. 확인하며 고친 것
 
 - 서버 오류 로그의 원인이 비어 있었습니다. DB를 멈춰 보니 연결 거부 오류(AggregateError)는 message가 빈 문자열이라 로그에 요청 번호만 남았습니다. message가 비면 오류 코드(`ECONNREFUSED`)·이름을 남기게 고치고 테스트를 더했습니다.
-- `next dev`를 실행하자 Next.js가 저장소의 `AGENTS.md`(하네스 규칙)에 자체 안내 블록을 덧붙였습니다. 의도한 변경이 아니라 되돌렸고, 점검표 "push 전"에 도구가 만든 변경을 `git status`로 확인하는 항목을 더했습니다. `next.config.ts`의 `agentRules: false`로 끌 수 있다고 안내하지만, 설정을 바꿀지는 확인을 받습니다.
+- `next dev`를 실행하자 Next.js가 저장소의 `AGENTS.md`(하네스 규칙)에 자체 안내 블록을 덧붙였습니다. 의도한 변경이 아니라 되돌렸고, 점검표 "push 전"에 도구가 만든 변경을 `git status`로 확인하는 항목을 더했습니다. 확인을 받아 `next.config.ts`에 `agentRules: false`를 넣었고, 개발 서버를 다시 켰을 때 `AGENTS.md`가 바뀌지 않는 것을 확인했습니다.
 - 첫 요청은 개발 서버가 라우트를 컴파일하느라 2초 넘게 걸렸고, 그동안 화면 버튼이 막혀 있었습니다. 개발 모드에서만 생기는 지연입니다.
 
 ## 5. 후속
 
 - 배포 뒤 확인(설계 14장): 풀러를 거칠 때 동시 추가가 200개를 넘지 않는지, 배포 URL에서 화면 동작.
 - 업로드 PR: 업로드 판정이 이 저장소의 정책 읽기를 같이 씁니다.
+- `docs/prompt-inputs.md`에 리뷰·정책 라운드 입력 5건(20:15~20:31)을 덧붙이고, 붙여 넣은 글을 감싸던 표시 태그 6줄을 지웠습니다. 확인을 받아 커밋했습니다.

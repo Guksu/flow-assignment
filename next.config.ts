@@ -10,6 +10,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // next dev가 저장소의 AGENTS.md(하네스 규칙)에 Next.js 안내 블록을 덧붙이지 않게 끈다
+  agentRules: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
