@@ -67,6 +67,21 @@ describe("업로드 처리 (설계 6장)", () => {
     expect(big.read).not.toHaveBeenCalled();
   });
 
+  it("크기를 넘는 파일도 확장자가 막혀 있으면 '차단'으로 기록하고, 내용은 읽지 않는다 (문답 #39)", async () => {
+    await setFixedBlocked("exe", true, RID);
+    const big = file("Setup.EXE", MAX_FILE_BYTES + 1);
+    const { attempt, code } = await handleUpload(big, storage, RID);
+    expect(code).toBe("EXTENSION_BLOCKED");
+    expect(attempt).toMatchObject({ status: "blocked", matchedRule: "exe", name: "Setup.EXE" });
+    expect(big.read).not.toHaveBeenCalled();
+  });
+
+  it("크기를 넘는 파일도 이름이 잘못됐으면 이름 사유가 먼저", async () => {
+    const big = file("evil.ex\u{200B}e", MAX_FILE_BYTES + 1);
+    expect((await handleUpload(big, storage, RID)).code).toBe("NAME_CONTROL_CHAR");
+    expect(big.read).not.toHaveBeenCalled();
+  });
+
   it("요청 크기만 보고 거부한 시도도 이름 없이 기록한다", async () => {
     const { attempt, code } = await recordOversized(5_000_000, RID);
     expect(code).toBe("FILE_TOO_LARGE");

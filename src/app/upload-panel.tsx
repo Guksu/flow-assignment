@@ -4,8 +4,8 @@
 // 안내가 "막힌다"여도 올려 볼 수 있게 둔다 — 서버가 실제로 막는 것을 확인하는 화면이기 때문이다.
 import { type ChangeEvent, type FormEvent, useState } from "react";
 import { blockedMessage, errorText, NAME_ERROR_MESSAGES, POLICY_ERROR_MESSAGES, UPLOAD_ERROR_MESSAGES } from "@/domain/messages";
-import { decideUpload } from "@/domain/policy";
-import { MAX_FILE_BYTES, parseUploadName } from "@/domain/upload-name";
+import { checkUpload } from "@/domain/upload-check";
+import { parseUploadName } from "@/domain/upload-name";
 
 type Status = "stored" | "blocked" | "rejected" | "failed";
 type Result = { key: string; name: string; status: Status; message: string };
@@ -24,17 +24,22 @@ const shownName = (name: string) => {
   return parsed.ok ? parsed.displayName : HIDDEN_NAME;
 };
 
+// 서버와 같은 함수(checkUpload)로 같은 우선순위를 쓴다: 이름 → 정책이 크기보다 먼저 (문답 #39)
 function precheck(file: File, policy: Policy | null): string {
-  if (file.size > MAX_FILE_BYTES) return UPLOAD_ERROR_MESSAGES.FILE_TOO_LARGE;
-  const name = parseUploadName(file.name);
-  if (!name.ok) return NAME_ERROR_MESSAGES[name.code];
-  if (!policy) return "정책을 불러오지 못해 미리 판단하지 못했습니다. 올리면 서버가 판단합니다.";
-  const decision = decideUpload(name, {
-    fixedBlocked: policy.fixed.filter((f) => f.blocked).map((f) => f.ext),
-    custom: policy.custom.map((c) => c.ext),
+  const check = checkUpload(file.name, file.size, {
+    fixedBlocked: policy ? policy.fixed.filter((f) => f.blocked).map((f) => f.ext) : [],
+    custom: policy ? policy.custom.map((c) => c.ext) : [],
   });
-  if (decision.blocked) return `${blockedMessage(decision.matched, decision.source)} 올려 보면 서버도 막습니다.`;
-  return "올릴 수 있는 파일입니다. 최종 판정은 서버가 합니다.";
+  const unknownPolicy = policy ? "" : " 정책을 불러오지 못해 차단 여부는 올리면 서버가 판단합니다.";
+  if (check.ok) return policy ? "올릴 수 있는 파일입니다. 최종 판정은 서버가 합니다." : unknownPolicy.trim();
+  switch (check.code) {
+    case "EXTENSION_BLOCKED":
+      return `${blockedMessage(check.matched, check.source)} 올려 보면 서버도 막습니다.`;
+    case "FILE_TOO_LARGE":
+      return UPLOAD_ERROR_MESSAGES.FILE_TOO_LARGE + unknownPolicy;
+    default:
+      return NAME_ERROR_MESSAGES[check.code];
+  }
 }
 
 export function UploadPanel() {
