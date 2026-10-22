@@ -1,24 +1,24 @@
-# 파일 확장자 차단 — flow 과제
+# 파일 확장자 차단 · 업로드
 
-확장자 차단 정책을 관리하고, 그 정책을 서버가 실제 업로드에서 강제하는 프로젝트입니다.
+고정·커스텀 확장자를 차단 목록으로 관리하고, 파일을 올릴 때 서버가 이 정책을 적용하는 과제입니다. 정책은 DB에 저장되며 새로고침해도 유지됩니다.
 
-- 배포: https://flow-assignment-puce.vercel.app
-- 상태 확인: https://flow-assignment-puce.vercel.app/api/health
+[배포 사이트](https://flow-assignment-puce.vercel.app) · [DB 연결 상태](https://flow-assignment-puce.vercel.app/api/health)
 
 ## 핵심 판단
 
-1. 파일 이름은 정규화(NFKC → 소문자 → 끝 점·공백 제거)한 뒤 마지막 점 뒤로 판정합니다. 복합 확장자는 점 경계에서 최대 두 단까지, 정확히 같을 때만 막습니다. 확장자를 숨길 수 있는 안 보이는 글자가 든 이름은 거부합니다. 이모지가 든 이름도 거부하는데, 이모지는 확장자를 숨기지 못하므로 이유가 다릅니다. 사내 도구에서는 드물다고 제가 판단했고("사내 도구"는 과제 원문에 없는 제 가정), 그 대가로 이모지가 붙은 정상 파일 이름도 막힙니다. 판정은 순수 함수 하나이고, 서버가 강제하며 화면은 같은 함수로 안내만 합니다.
-2. 파일 내용(시그니처)은 검사하지 않습니다. 대신 업로드 파일을 비공개로 저장하고 내려받을 수 없게 해서, 확장자를 위장한 파일이 실행되거나 퍼질 경로를 두지 않았습니다.
-3. 고정 확장자와 커스텀 확장자는 테이블을 나눴습니다. 둘이 겹치지 않는 규칙과 확장자 형식은 DB 트리거·CHECK로도 막고, 커스텀 200개 제한은 잠금으로 직렬화했습니다. 잠금이 없으면 동시 요청에서 201개가 되는 것을 실측으로 확인했습니다.
-4. 업로드는 이름·정책 판정을 크기보다 우선합니다. 큰 실행 파일도 "크기 초과"가 아니라 "차단"으로 알리고 기록하기 위해서입니다. 다만 서버가 본문을 받은 요청에서만 그렇고, 그 경계를 문서와 화면에 적었습니다.
-5. 인증 없이 누구나 정책을 바꿀 수 있는 공개 배포라서, 기본값 초기화, 앱에서는 고칠 수 없는 변경 이력, 하루 저장 50건 상한을 두었습니다. 범위는 "마감 안에 동작을 확실히 하고, 내가 면접에서 설명할 수 있는가"를 기준으로 잘랐습니다.
+1. 확장자 판정은 서버가 강제합니다. 화면도 같은 순수 함수를 사용해 업로드 전에 결과를 안내합니다.
+2. 이름을 정규화한 뒤 마지막 확장자를 비교합니다. `tar.gz` 같은 복합 항목은 점으로 구분한 마지막 두 단이 정확히 일치할 때만 차단합니다.
+3. 파일 내용은 검사하지 않습니다. 파일은 무작위 경로에 비공개로 저장하며, 실행·미리보기·다운로드 기능은 제공하지 않습니다.
+4. 커스텀 200개 제한은 DB 잠금 안에서 확인합니다. 로컬 동시 요청 시험에서 잠금이 없으면 201개가 되는 경우를 재현했습니다.
+5. 평가자가 바로 시험할 수 있도록 로그인 없이 정책을 편집하게 했습니다. 방문자 간 간섭은 허용하며, 변경 이력과 초기화를 제공합니다. 정상 파일 저장은 전체 방문자를 합쳐 하루 50건까지입니다.
 
 ## 문서 읽는 순서
 
-1. [CONSIDERATIONS.md](CONSIDERATIONS.md) — 무엇을 왜 막았는지. 가장 깊이 다룬 위험 다섯 가지와 과제 고려사항별 판단
-2. [PROMPT_LOG.md](PROMPT_LOG.md) — AI를 어떻게 썼는지. 제 입력이 방향을 바꾼 순간과 회고
-3. [설계 문서](docs/design/2026-10-21-file-extension-policy.md) — 구현의 정본. 결정 표, 판정 규칙, 스키마, 흐름, 문답 기록, AI 오류 노트
-4. 근거 자료 — [요구사항 분석](docs/analysis/01-requirements.md), [위험 목록](docs/analysis/02-risks.md), [스택 비교](docs/analysis/03-stack.md), [AI 작업 점검표](docs/ai-checklist.md), [작업 기록](docs/history/)
+1. [고려사항](CONSIDERATIONS.md) — 주요 위험, 구현한 대응, 남겨 둔 한계
+2. [AI 활용 기록](PROMPT_LOG.md) — 실제 입력과 그에 따라 바뀐 판단, 사용한 도구, 회고
+3. [설계 문서](docs/design/2026-10-21-file-extension-policy.md) — 판정 규칙, 스키마, API, 결정 이력
+
+분석 근거는 [요구사항](docs/analysis/01-requirements.md)·[위험 목록](docs/analysis/02-risks.md)·[스택 비교](docs/analysis/03-stack.md)에, 단계별 검증 결과는 [작업 기록](docs/history/)에 있습니다.
 
 ## 바로 해 보기
 
@@ -31,7 +31,7 @@ echo test > Setup.EXE
 curl -s -F "file=@Setup.EXE" https://flow-assignment-puce.vercel.app/api/uploads
 ```
 
-`422 EXTENSION_BLOCKED`와 걸린 확장자(`"matched": "exe"`, `"source": "fixed"`)가 옵니다. 시험한 뒤에는 "기본값으로 초기화"로 되돌려 주세요.
+`422 EXTENSION_BLOCKED`와 걸린 확장자(`"matched": "exe"`, `"source": "fixed"`)가 옵니다. `exe`만 차단 중이라면 `sample.txt`는 저장됩니다. 파일은 한 번에 하나, 4MiB까지입니다. 다른 방문자도 같은 정책을 바꿀 수 있으므로 예상과 다르면 현재 정책을 확인해 주세요. "기본값으로 초기화"는 고정 항목을 모두 해제하고 커스텀 항목을 삭제합니다.
 
 ## 구조
 
@@ -94,7 +94,7 @@ pnpm typecheck && pnpm lint && pnpm test
 | `created_at` | `timestamptz` | NOT NULL, 기본 `now()` |
 
 - 트리거 `custom_extension_not_fixed` / `fixed_extension_not_custom`: 고정과 커스텀이 겹치면 거부합니다(양방향).
-- 200개 제한은 제약이 아니라, 정책 쓰기 전체를 한 줄로 세우는 잠금(`pg_advisory_xact_lock`) 안에서 셉니다.
+- 200개 제한은 정책 변경을 순서대로 처리하는 잠금(`pg_advisory_xact_lock`) 안에서 개수를 확인해 적용합니다.
 
 ### `policy_audit_log` — 정책 변경 이력 (추가 전용, 30일)
 
@@ -110,7 +110,7 @@ pnpm typecheck && pnpm lint && pnpm test
 - 인덱스: `policy_audit_log_occurred_at_idx (occurred_at DESC)`
 - 트리거: 수정·TRUNCATE는 거부, 삭제는 30일이 지난 행만 허용합니다. 앱 경로 기준이고, 테이블 주인 권한이면 트리거를 끌 수 있습니다(CONSIDERATIONS "실제 서비스로 넓힌다면").
 
-### `upload_attempt` — 업로드 시도 (저장·차단·거부 모두, 24시간)
+### `upload_attempt` — 업로드 시도 (저장·차단·거부, 24시간 후 정리 대상)
 
 | 컬럼 | 타입 | 제약 |
 | --- | --- | --- |
@@ -129,11 +129,11 @@ pnpm typecheck && pnpm lint && pnpm test
 - 인덱스: `upload_attempt_expires_idx (expires_at)` — 정리, `upload_attempt_stored_idx (created_at) WHERE status = 'stored'` — 하루 저장 수
 - 상태와 컬럼의 짝(저장이면 경로 있음, 차단이면 걸린 규칙 있음 등)을 CHECK로 묶었습니다.
 
-마이그레이션 실행기는 적용한 파일을 `schema_migrations(version text PK, applied_at timestamptz NOT NULL DEFAULT now())`에 남깁니다.
+만료된 시도와 파일은 하루 한 번 크론에서 정리합니다. 마이그레이션 실행기는 적용 이력을 `schema_migrations(version text PK, applied_at timestamptz NOT NULL DEFAULT now())`에 남깁니다.
 
 ## API
 
-모든 응답에 `Cache-Control: no-store`와 `X-Request-Id`가 붙습니다. 오류는 `{ "error": { "code", "message", "requestId", "details" } }` 형식이고, `message`는 화면에 그대로 보이는 문구입니다.
+앱이 반환하는 API 응답에 `Cache-Control: no-store`와 `X-Request-Id`가 붙습니다. 오류는 `{ "error": { "code", "message", "requestId", "details" } }` 형식이고, `message`는 화면에 그대로 보이는 문구입니다. 상세 명세는 설계 문서 8장에 있습니다.
 
 | 메서드·경로 | 성공 | 주요 실패 |
 | --- | --- | --- |
@@ -146,5 +146,3 @@ pnpm typecheck && pnpm lint && pnpm test
 | `POST /api/uploads` (multipart `file`) | 201 | 400 요청·이름, 413 크기, 422 차단, 429 하루 50건, 503 저장 실패 |
 | `GET /api/health` | 200 DB 왕복 시간 | 503 |
 | `GET /api/cron/cleanup` (`Bearer CRON_SECRET`) | 200 삭제 건수 | 401 |
-
-자세한 요청·응답과 오류 코드는 설계 문서 8장에 있습니다.
