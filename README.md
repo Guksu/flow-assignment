@@ -44,7 +44,7 @@ src/ui/       화면 패턴(확인 창, 진행 버튼, 스켈레톤, 끌어다 �
 migrations/   SQL 마이그레이션 — 스키마의 정본
 ```
 
-배포는 Vercel Hobby(함수 지역 싱가포르) + Neon PostgreSQL(싱가포르, 풀링 연결) + Vercel Blob 비공개 스토어입니다. 정리 크론은 매일 KST 04:00에 돕니다.
+배포는 Vercel Hobby(함수 지역 싱가포르) + Neon PostgreSQL(싱가포르, 풀링 연결) + Vercel Blob 비공개 스토어입니다. 정리 크론은 매일 KST 04:00~05:00 사이에 돕니다(Hobby 크론은 정한 시각부터 1시간 안에 실행).
 
 ## 로컬 실행
 
