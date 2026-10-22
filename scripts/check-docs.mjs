@@ -1,6 +1,6 @@
 // 제출 문서 점검 (docs/writing-guide.md "제출 전 점검").
 // 사용법: node scripts/check-docs.mjs [파일 ...]   — 파일을 주지 않으면 제출 문서 네 개를 본다.
-// [초안]·"사용자"·"확인 필요"가 남아 있으면 실패(종료 코드 1). 굵은 글씨, 본문 속 ID 참조, "~다."로 끝나는 평서형 문장은 개수만 알리고 기준을 넘으면 경고한다.
+// [초안]·"사용자"·"확인 필요"가 남아 있거나, 분석·설계 문서 표의 행 ID가 겹치면 실패(종료 코드 1). 굵은 글씨, 본문 속 ID 참조, "~다."로 끝나는 평서형 문장은 개수만 알리고 기준을 넘으면 경고한다.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 const DESIGN_DIR = "docs/design";
@@ -70,6 +70,27 @@ for (const file of files) {
   rows.push({ file, lines: lines.length, bold, proseIds, tableIds, plain, leftovers, warnings });
 }
 
+// 표의 첫 칸 ID(위험 U14, 오류 E18, 요구 R-A3 등)가 한 문서 안에서 겹치면 실패한다.
+// 새 행에 번호를 손으로 붙이다 이미 쓴 번호를 다시 쓴 적이 있다(AI 오류 E24)
+const ID_TABLE_FILES = ["docs/analysis", DESIGN_DIR]
+  .filter((dir) => existsSync(dir))
+  .flatMap((dir) => readdirSync(dir).filter((f) => f.endsWith(".md")).map((f) => `${dir}/${f}`))
+  .concat(existsSync("docs/ai-checklist.md") ? ["docs/ai-checklist.md"] : []);
+const ROW_ID = /^\| (R-[AB]\d{1,2}|[A-Z]\d{1,2}) \|/;
+const duplicates = [];
+for (const file of ID_TABLE_FILES) {
+  const seen = new Map();
+  readFileSync(file, "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      const id = line.match(ROW_ID)?.[1];
+      if (!id) return;
+      if (seen.has(id)) duplicates.push(`${file}: ${id} (${seen.get(id)}행, ${i + 1}행)`);
+      else seen.set(id, i + 1);
+    });
+}
+if (duplicates.length > 0) failed = true;
+
 for (const r of rows) {
   if (r.note) {
     console.log(`- ${r.file}: ${r.note}`);
@@ -79,5 +100,6 @@ for (const r of rows) {
   for (const l of r.leftovers) console.log(`    실패: ${l}`);
   for (const w of r.warnings) console.log(`    경고: ${w}`);
 }
-console.log(failed ? "\n결과: 실패 — 남은 [초안]·\"사용자\"·\"확인 필요\"를 고친다" : "\n결과: 통과");
+for (const d of duplicates) console.log(`- 겹친 ID: ${d}`);
+console.log(failed ? "\n결과: 실패 — 남은 [초안]·\"사용자\"·\"확인 필요\"와 겹친 ID를 고친다" : "\n결과: 통과");
 process.exitCode = failed ? 1 : 0;
