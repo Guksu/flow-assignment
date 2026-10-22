@@ -4,7 +4,7 @@
 |------|------|
 | 날짜 | 2026-10-22 |
 | 브랜치 | `docs/service-extension` |
-| PR | 생성 후 링크 추가 |
+| PR | [#12](https://github.com/Guksu/flow-assignment/pull/12) |
 | 관련 경로 | `CONSIDERATIONS.md`, `README.md`, `PROMPT_LOG.md`, `docs/prompt-inputs.md`, `docs/analysis/02-risks.md`, `docs/design/2026-10-21-file-extension-policy.md` 핵심 판단·12장·13장, `docs/writing-guide.md` |
 
 ## 1. 개요
